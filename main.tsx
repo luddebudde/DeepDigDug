@@ -18,7 +18,7 @@ game.ready.then(async () => {
     width: 2000,
     height: 50,
     density: 1,
-    isStatic: false,
+    isStatic: true,
   });
 
   const cube = createCube(game, rapierWorld, objects, {
@@ -26,6 +26,7 @@ game.ready.then(async () => {
     width: 50,
     height: 50,
     density: 1,
+    isStatic: false,
   });
 
   game.app.ticker.add(() => {
