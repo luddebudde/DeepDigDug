@@ -14,6 +14,7 @@ export const GameScreen = () => {
 
   return (
     <div
+      id={"gameScreen"}
       ref={containerRef}
       style={{ width: "100vw", height: "100vh" }}
     />

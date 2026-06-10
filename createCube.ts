@@ -1,5 +1,5 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Graphics, Sprite } from "pixi.js";
+import { Container, Graphics, Sprite } from "pixi.js";
 import { Vec2 } from "./vec2";
 
 export type Object = {
@@ -9,7 +9,7 @@ export type Object = {
 };
 
 export const createCube = (
-  game,
+  worldContainer: Container,
   rapierWorld: RAPIER.World,
   objects: Object[],
   physics: {
@@ -31,14 +31,21 @@ export const createCube = (
   const rectangleBody = rapierWorld.createRigidBody(rectangleDesc);
 
   const colliderDesc = RAPIER.ColliderDesc.cuboid(
-    physics.width,
-    physics.height
-  ).setDensity(physics.density);
+    physics.width / 2,
+    physics.height / 2
+  )
+    .setDensity(physics.density)
+    .setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
   rapierWorld.createCollider(colliderDesc, rectangleBody);
 
   const pos = rectangleBody.translation();
   const rectangleSprite = new Graphics()
-    .rect(pos.x, pos.y, physics.width, physics.height)
+    .rect(
+      -physics.width / 2,
+      -physics.height / 2,
+      physics.width,
+      physics.height
+    )
     .fill(0xff4466);
 
   const rectangle = {
@@ -48,7 +55,7 @@ export const createCube = (
   };
 
   objects.push(rectangle);
-  game.app.stage.addChild(rectangleSprite);
+  worldContainer.addChild(rectangleSprite);
 
   return rectangle;
 };
