@@ -14,7 +14,7 @@ const world = {
 
 const objects: Object[] = [];
 
-const gravity = { x: 0, y: 98.1 };
+const gravity = { x: 0, y: 980.1 };
 const rapier = new RAPIER.World(gravity);
 
 createRoot(document.getElementById("root")!).render(<ScreenHandler />);
@@ -22,26 +22,58 @@ createRoot(document.getElementById("root")!).render(<ScreenHandler />);
 // Creating "game"
 game.ready.then(async () => {
   // Post-game creation; before game loop
+  const squareSize = 50;
+  const blockSize = 100;
 
   const worldContainer: Container = new Container();
 
   game.app.stage.addChild(worldContainer);
 
   // Create test objects; floor and cube
-  const floor = createCube(worldContainer, rapier, objects, {
-    pos: { x: world.width / 2, y: 300 },
-    width: world.width,
-    height: 50,
-    density: 0.01,
-    isStatic: true,
+
+  const worldBlocks = [...Array(squareSize)].flatMap((verticles, ia) => {
+    console.log(ia);
+    [...Array(squareSize / 2)].flatMap((block, i) => {
+      const margin = (squareSize * blockSize) / 2;
+
+      const xPos = (blockSize + 1) * (ia + 1) - (squareSize * blockSize) / 2;
+      const yPos = margin + (blockSize + 1) * (i + 1) - margin;
+
+      const isSensor = yPos > 200 ? false : true;
+      return createCube(worldContainer, rapier, objects, {
+        pos: {
+          x: xPos,
+          y: yPos,
+        },
+        width: blockSize,
+        height: blockSize,
+        density: 0.0001,
+        isStatic: true,
+        isSensor: isSensor,
+      });
+    });
   });
 
+  // const floor = createCube(worldContainer, rapier, objects, {
+  //   pos: { x: world.width / 2, y: 200 },
+  //   width: world.width,
+  //   height: 50,
+  //   density: 0.01,
+  //   isStatic: true,
+  // });
+
   const player = createCube(worldContainer, rapier, objects, {
-    pos: { x: 100, y: 100 },
+    pos: { x: 0, y: 0 },
     width: 50,
     height: 50,
-    density: 0.01,
+    density: 0.001,
+    isSensor: false,
   });
+
+  const camera = {
+    pos: { x: 0, y: 0 },
+    scale: 1,
+  };
 
   setupKeyboardListeners();
 
@@ -57,23 +89,24 @@ game.ready.then(async () => {
       );
       object.sprite.rotation = object.body.rotation();
 
+      camera.pos = player.body.translation();
       worldContainer.position.set(
-        player.body.translation().x,
-        player.body.translation().y
+        -camera.pos.x + world.width / 2,
+        -camera.pos.y + world.heigth / 2
       );
-
-      if (keys["KeyW"]) {
-        player.body.applyImpulse({ x: 0, y: -100 }, true);
-      }
-      if (keys["KeyS"]) {
-        player.body.applyImpulse({ x: 0, y: 100 }, true);
-      }
-      if (keys["KeyA"]) {
-        player.body.applyImpulse({ x: -100, y: 0 }, true);
-      }
-      if (keys["KeyD"]) {
-        player.body.applyImpulse({ x: 100, y: 0 }, true);
-      }
     });
+
+    if (keys["KeyW"]) {
+      player.body.applyImpulse({ x: 0, y: -100 }, true);
+    }
+    if (keys["KeyS"]) {
+      player.body.applyImpulse({ x: 0, y: 100 }, true);
+    }
+    if (keys["KeyA"]) {
+      player.body.applyImpulse({ x: -100, y: 0 }, true);
+    }
+    if (keys["KeyD"]) {
+      player.body.applyImpulse({ x: 100, y: 0 }, true);
+    }
   });
 });

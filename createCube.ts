@@ -18,9 +18,11 @@ export const createCube = (
     height: number;
     density: number;
     isStatic?: boolean;
+    isSensor: boolean;
   },
   pixi?: {
     sprite: string;
+    alpha: number;
   }
 ): Object => {
   const rectangleDesc = physics.isStatic
@@ -33,10 +35,10 @@ export const createCube = (
   const colliderDesc = RAPIER.ColliderDesc.cuboid(
     physics.width / 2,
     physics.height / 2
-  )
-    .setDensity(physics.density)
-    .setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
-  rapierWorld.createCollider(colliderDesc, rectangleBody);
+  ).setDensity(physics.density);
+  rapierWorld
+    .createCollider(colliderDesc, rectangleBody)
+    .setSensor(physics.isSensor);
 
   const pos = rectangleBody.translation();
   const rectangleSprite = new Graphics()
@@ -48,6 +50,8 @@ export const createCube = (
     )
     .fill(0xff4466);
 
+  const alpha = physics.isSensor ? 0.5 : 1;
+  rectangleSprite.alpha = alpha;
   const rectangle = {
     pos: rectangleBody.translation(),
     body: rectangleBody,
