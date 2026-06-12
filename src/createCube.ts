@@ -1,12 +1,11 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Assets, Container, Sprite } from "pixi.js";
+import { Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { Vec2 } from "./vec2";
+import { Object } from "./main";
+import { createBody } from "./rapier/createBody";
+import { createSprite } from "./pixi/createSprite";
 
-export type Object = {
-  pos: Vec2;
-  body: RAPIER.RigidBody;
-  sprite: Sprite;
-};
+export const colliderToEntity = new Map();
 
 export const createCube = async (
   worldContainer: Container,
@@ -17,54 +16,44 @@ export const createCube = async (
     width: number;
     height: number;
     density: number;
-    isStatic?: boolean;
-    isSensor: boolean;
+    staticMode?: boolean;
+    sensorMode: boolean;
   },
   pixi?: {
-    sprite: string;
+    pixiUrl?: string;
     zIndex?: number;
   }
 ): Promise<Object> => {
-  const rectangleDesc = physics.isStatic
-    ? RAPIER.RigidBodyDesc.fixed()
-    : RAPIER.RigidBodyDesc.dynamic();
+  const dimensions = {
+    width: physics.width,
+    height: physics.height,
+  };
+  const body = createBody(
+    rapierWorld,
+    physics.pos,
+    dimensions,
+    physics.density,
+    physics.staticMode,
+    physics.sensorMode
+  );
 
-  rectangleDesc.setTranslation(physics.pos.x, physics.pos.y);
-  const rectangleBody = rapierWorld.createRigidBody(rectangleDesc);
+  const texture: Texture | undefined = await Assets.load(pixi?.pixiUrl ?? "");
+  const sprite: Sprite | Graphics = createSprite(
+    dimensions,
+    texture,
+    pixi?.zIndex
+  );
 
-  const colliderDesc = RAPIER.ColliderDesc.cuboid(
-    physics.width / 2,
-    physics.height / 2
-  ).setDensity(physics.density);
-  rapierWorld
-    .createCollider(colliderDesc, rectangleBody)
-    .setSensor(physics.isSensor);
-
-  const sprite = pixi === undefined ? "coal_texture" : pixi.sprite;
-  const texture = await Assets.load(sprite);
-
-  const rectangleSprite = new Sprite(texture);
-  rectangleSprite.anchor.set(0.5);
-  rectangleSprite.width = physics.width;
-  rectangleSprite.height = physics.height;
-  rectangleSprite.zIndex = pixi?.zIndex ?? 0;
-  // rectangleSprite.rect(
-  //   -physics.width / 2,
-  //   -physics.height / 2,
-  //   physics.width,
-  //   physics.height
-  // )
-
-  const alpha = physics.isSensor ? 0.5 : 1;
-  // rectangleSprite.alpha = alpha;
-  const rectangle = {
-    pos: rectangleBody.translation(),
-    body: rectangleBody,
-    sprite: rectangleSprite,
+  const rectangle: Object = {
+    pos: body.translation(),
+    body: body,
+    sprite: sprite,
   };
 
+  colliderToEntity.set(rectangle.body.handle, rectangle);
+
   objects.push(rectangle);
-  worldContainer.addChild(rectangleSprite);
+  worldContainer.addChild(sprite);
 
   return rectangle;
 };

@@ -3,8 +3,15 @@ import { ScreenHandler } from "./ScreenHandler";
 import { game } from "./Game";
 import { Assets, Container, Graphics, Sprite } from "pixi.js";
 import RAPIER from "@dimforge/rapier2d";
-import { createCube, Object } from "./createCube";
+import { colliderToEntity, createCube } from "./createCube";
 import { keys, setupKeyboardListeners } from "./keyListner";
+import { runEventQueueCheck } from "./rapier/eventQueueHandler";
+import { Vec2 } from "./vec2";
+import { generateWorld } from "./generateWorld";
+
+// Refactor segments of code to seperate files
+// Clear up some code
+// More functions (arrow up)
 
 // Create first elements
 const world = {
@@ -12,75 +19,46 @@ const world = {
   heigth: screen.height,
 };
 
-const objects: Object[] = [];
-
 const gravity = { x: 0, y: 980.1 };
 const rapier = new RAPIER.World(gravity);
+const eventQueue = new RAPIER.EventQueue(true);
+
+const rapierHook = {
+  filterContactPair(collider1, collider2, body1, body2) {
+    // Return null to skip contact computation entirely.
+    // Return a SolverFlags value to allow contact computation.
+    return RAPIER.SolverFlags.COMPUTE_IMPULSES;
+  },
+
+  filterIntersectionPair(collider1, collider2, body1, body2) {
+    // Return false to skip intersection testing.
+    // Return true to continue and test overlap.
+    return true;
+  },
+};
 
 createRoot(document.getElementById("root")!).render(<ScreenHandler />);
+
+export type Object = {
+  pos: Vec2;
+  body: RAPIER.RigidBody;
+  sprite: Sprite | Graphics;
+};
+
+const objects: Object[] = [];
 
 // Creating "game"
 game.ready.then(async () => {
   // Post-game creation; before game loop
-  const squareSize = 50;
-  const blockSize = 100;
-
   const worldContainer: Container = new Container();
   worldContainer.sortableChildren = true;
 
   game.app.stage.addChild(worldContainer);
 
-  // Create test objects; floor and cube
-
-  const worldBlocks = [...Array(squareSize)].flatMap((verticles, ia) => {
-    console.log(ia);
-    [...Array(squareSize / 2)].flatMap((block, i) => {
-      const margin = (squareSize * blockSize) / 2;
-
-      const xPos = blockSize * (ia + 1) - (squareSize * blockSize) / 2;
-      const yPos = margin + blockSize * (i + 1) - margin;
-
-      const isSensor = yPos > 200 ? false : true;
-      return createCube(
-        worldContainer,
-        rapier,
-        objects,
-        {
-          pos: {
-            x: xPos,
-            y: yPos,
-          },
-          width: blockSize,
-          height: blockSize,
-          density: 0.0001,
-          isStatic: true,
-          isSensor: isSensor,
-        },
-        { sprite: "dirt_texture.png", zIndex: 0 }
-      );
-    });
-  });
-
-  // const floor = createCube(worldContainer, rapier, objects, {
-  //   pos: { x: world.width / 2, y: 200 },
-  //   width: world.width,
-  //   height: 50,
-  //   density: 0.01,
-  //   isStatic: true,
-  // });
-
-  const player = await createCube(
+  const [player, worldBlocks] = await generateWorld(
     worldContainer,
     rapier,
-    objects,
-    {
-      pos: { x: 0, y: 0 },
-      width: 50,
-      height: 50,
-      density: 0.001,
-      isSensor: false,
-    },
-    { sprite: "coal_texture.png", zIndex: 1 }
+    objects
   );
 
   const camera = {
@@ -94,7 +72,9 @@ game.ready.then(async () => {
 
   // Game loop!
   game.app.ticker.add(() => {
-    rapier.step();
+    rapier.step(eventQueue, rapierHook);
+
+    runEventQueueCheck(eventQueue);
 
     // Sync sprite's pos with body's pos
     objects.forEach((object) => {
@@ -103,13 +83,13 @@ game.ready.then(async () => {
         object.body.translation().y
       );
       object.sprite.rotation = object.body.rotation();
-
-      camera.pos = player.body.translation();
-      worldContainer.position.set(
-        -camera.pos.x + world.width / 2,
-        -camera.pos.y + world.heigth / 2
-      );
     });
+
+    camera.pos = player.body.translation();
+    worldContainer.position.set(
+      -camera.pos.x + world.width / 2,
+      -camera.pos.y + world.heigth / 2
+    );
 
     if (keys["KeyW"]) {
       player.body.applyImpulse({ x: 0, y: -100 }, true);
