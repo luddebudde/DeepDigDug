@@ -26,6 +26,7 @@ game.ready.then(async () => {
   const blockSize = 100;
 
   const worldContainer: Container = new Container();
+  worldContainer.sortableChildren = true;
 
   game.app.stage.addChild(worldContainer);
 
@@ -36,21 +37,27 @@ game.ready.then(async () => {
     [...Array(squareSize / 2)].flatMap((block, i) => {
       const margin = (squareSize * blockSize) / 2;
 
-      const xPos = (blockSize + 1) * (ia + 1) - (squareSize * blockSize) / 2;
-      const yPos = margin + (blockSize + 1) * (i + 1) - margin;
+      const xPos = blockSize * (ia + 1) - (squareSize * blockSize) / 2;
+      const yPos = margin + blockSize * (i + 1) - margin;
 
       const isSensor = yPos > 200 ? false : true;
-      return createCube(worldContainer, rapier, objects, {
-        pos: {
-          x: xPos,
-          y: yPos,
+      return createCube(
+        worldContainer,
+        rapier,
+        objects,
+        {
+          pos: {
+            x: xPos,
+            y: yPos,
+          },
+          width: blockSize,
+          height: blockSize,
+          density: 0.0001,
+          isStatic: true,
+          isSensor: isSensor,
         },
-        width: blockSize,
-        height: blockSize,
-        density: 0.0001,
-        isStatic: true,
-        isSensor: isSensor,
-      });
+        { sprite: "dirt_texture.png", zIndex: 0 }
+      );
     });
   });
 
@@ -62,16 +69,24 @@ game.ready.then(async () => {
   //   isStatic: true,
   // });
 
-  const player = createCube(worldContainer, rapier, objects, {
-    pos: { x: 0, y: 0 },
-    width: 50,
-    height: 50,
-    density: 0.001,
-    isSensor: false,
-  });
+  const player = await createCube(
+    worldContainer,
+    rapier,
+    objects,
+    {
+      pos: { x: 0, y: 0 },
+      width: 50,
+      height: 50,
+      density: 0.001,
+      isSensor: false,
+    },
+    { sprite: "coal_texture.png", zIndex: 1 }
+  );
 
   const camera = {
+    // Center
     pos: { x: 0, y: 0 },
+    // Zoom
     scale: 1,
   };
 

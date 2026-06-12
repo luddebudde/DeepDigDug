@@ -1,14 +1,14 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Container, Graphics, Sprite } from "pixi.js";
+import { Assets, Container, Sprite } from "pixi.js";
 import { Vec2 } from "./vec2";
 
 export type Object = {
   pos: Vec2;
   body: RAPIER.RigidBody;
-  sprite: Graphics;
+  sprite: Sprite;
 };
 
-export const createCube = (
+export const createCube = async (
   worldContainer: Container,
   rapierWorld: RAPIER.World,
   objects: Object[],
@@ -22,9 +22,9 @@ export const createCube = (
   },
   pixi?: {
     sprite: string;
-    alpha: number;
+    zIndex?: number;
   }
-): Object => {
+): Promise<Object> => {
   const rectangleDesc = physics.isStatic
     ? RAPIER.RigidBodyDesc.fixed()
     : RAPIER.RigidBodyDesc.dynamic();
@@ -40,18 +40,23 @@ export const createCube = (
     .createCollider(colliderDesc, rectangleBody)
     .setSensor(physics.isSensor);
 
-  const pos = rectangleBody.translation();
-  const rectangleSprite = new Graphics()
-    .rect(
-      -physics.width / 2,
-      -physics.height / 2,
-      physics.width,
-      physics.height
-    )
-    .fill(0xff4466);
+  const sprite = pixi === undefined ? "coal_texture" : pixi.sprite;
+  const texture = await Assets.load(sprite);
+
+  const rectangleSprite = new Sprite(texture);
+  rectangleSprite.anchor.set(0.5);
+  rectangleSprite.width = physics.width;
+  rectangleSprite.height = physics.height;
+  rectangleSprite.zIndex = pixi?.zIndex ?? 0;
+  // rectangleSprite.rect(
+  //   -physics.width / 2,
+  //   -physics.height / 2,
+  //   physics.width,
+  //   physics.height
+  // )
 
   const alpha = physics.isSensor ? 0.5 : 1;
-  rectangleSprite.alpha = alpha;
+  // rectangleSprite.alpha = alpha;
   const rectangle = {
     pos: rectangleBody.translation(),
     body: rectangleBody,
