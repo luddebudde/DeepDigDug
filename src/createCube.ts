@@ -37,7 +37,9 @@ export const createCube = async (
     physics.sensorMode
   );
 
-  const texture: Texture | undefined = await Assets.load(pixi?.pixiUrl ?? "");
+  const texture: Texture | undefined = pixi?.pixiUrl
+    ? await Assets.load(pixi.pixiUrl)
+    : undefined;
   const sprite: Sprite | Graphics = createSprite(
     dimensions,
     texture,
@@ -48,6 +50,7 @@ export const createCube = async (
     pos: body.translation(),
     body: body,
     sprite: sprite,
+    toughness: 100,
   };
 
   colliderToEntity.set(rectangle.body.handle, rectangle);

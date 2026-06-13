@@ -2,8 +2,8 @@ import { Application } from "pixi.js";
 
 export class Game {
   app: Application | null = null;
-  private _resolve!: () => void;
-  ready: Promise<void> = new Promise<void>((res) => (this._resolve = res));
+  private _resolve!: (app: Application) => void;
+  ready: Promise<Application> = new Promise<Application>((res) => (this._resolve = res));
 
   async init(container: HTMLElement) {
 
@@ -15,7 +15,7 @@ export class Game {
     });
 
     container.appendChild(this.app.canvas);
-    this._resolve();
+    this._resolve(this.app);
   }
 }
 

@@ -3,12 +3,20 @@ import { Container, Sprite } from "pixi.js";
 import { createCube } from "./createCube";
 import { Object } from "./main";
 
+const sprites = [
+  "dirt_texture.png",
+  "coal_texture.png",
+  "silver_ore.png",
+  "stone_texture.png",
+  "diamond_ore.png",
+];
+
 export const generateWorld = async (
   worldContainer: Container,
   rapier: RAPIER.World,
   objects: Object[]
 ): Promise<[Object, Object[]]> => {
-  const blockSize = 50;
+  const blockSize = 25;
   const squareCount = 100;
 
   // Create test objects; floor and player
@@ -20,6 +28,8 @@ export const generateWorld = async (
 
           const xPos = blockSize * (ia + 1) - (squareCount * blockSize) / 2;
           const yPos = margin + blockSize * (i + 1) - margin;
+
+          const sprite = sprites[Math.floor(Math.random() * sprites.length)];
 
           const isSensor = yPos > 200 ? false : true;
           return createCube(
@@ -37,7 +47,10 @@ export const generateWorld = async (
               staticMode: true,
               sensorMode: isSensor,
             },
-            { pixiUrl: "dirt_texture.png", zIndex: 0 }
+            {
+              pixiUrl: sprite,
+              zIndex: 0,
+            }
           );
         }
       );

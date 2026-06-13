@@ -24,13 +24,13 @@ const rapier = new RAPIER.World(gravity);
 const eventQueue = new RAPIER.EventQueue(true);
 
 const rapierHook = {
-  filterContactPair(collider1, collider2, body1, body2) {
+  filterContactPair(collider1: any, collider2: any, body1: any, body2: any) {
     // Return null to skip contact computation entirely.
     // Return a SolverFlags value to allow contact computation.
-    return RAPIER.SolverFlags.COMPUTE_IMPULSES;
+    return RAPIER.SolverFlags.COMPUTE_IMPULSE;
   },
 
-  filterIntersectionPair(collider1, collider2, body1, body2) {
+  filterIntersectionPair(collider1: any, collider2: any, body1: any, body2: any) {
     // Return false to skip intersection testing.
     // Return true to continue and test overlap.
     return true;
@@ -43,17 +43,18 @@ export type Object = {
   pos: Vec2;
   body: RAPIER.RigidBody;
   sprite: Sprite | Graphics;
+  toughness: number
 };
 
 const objects: Object[] = [];
 
 // Creating "game"
-game.ready.then(async () => {
+game.ready.then(async (app) => {
   // Post-game creation; before game loop
   const worldContainer: Container = new Container();
   worldContainer.sortableChildren = true;
 
-  game.app.stage.addChild(worldContainer);
+  app.stage.addChild(worldContainer);
 
   const [player, worldBlocks] = await generateWorld(
     worldContainer,
@@ -71,7 +72,7 @@ game.ready.then(async () => {
   setupKeyboardListeners();
 
   // Game loop!
-  game.app.ticker.add(() => {
+  app.ticker.add(() => {
     rapier.step(eventQueue, rapierHook);
 
     runEventQueueCheck(eventQueue);

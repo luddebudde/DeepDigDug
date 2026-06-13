@@ -5,7 +5,7 @@ export const createSprite =  (
   texture: Texture | undefined,
   priorityIndex?: number
 ): Sprite | Graphics => {
-  if (texture === undefined) {
+  if (texture == null) {
     const graphics = new Graphics().rect(
       -dimensions.width / 2,
       -dimensions.height / 2,
