@@ -1,13 +1,13 @@
 import { createRoot } from "react-dom/client";
 import { ScreenHandler } from "./ScreenHandler";
 import { game } from "./Game";
-import {  Container, Graphics, Sprite } from "pixi.js";
+import { Container, Graphics, Sprite } from "pixi.js";
 import RAPIER from "@dimforge/rapier2d";
 import { keys, setupKeyboardListeners } from "./keyListner";
 import { runEventQueueCheck } from "./rapier/eventQueueHandler";
 import { Vec2 } from "./math/vec";
 import { generateWorld } from "./world_generation/generateWorld";
-
+import { log } from "node:console";
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -73,7 +73,7 @@ game.ready.then(async (app) => {
     pos: { x: 0, y: 0 },
     // Zoom
     //scale: 1,
-    scale: 0.1,
+    scale: 0.5,
   };
 
   setupKeyboardListeners();
@@ -113,5 +113,24 @@ game.ready.then(async (app) => {
     if (keys["KeyD"]) {
       player.body.applyImpulse({ x: 100, y: 0 }, true);
     }
+
+    if (mouseWheel < 0) {
+      // Scroll upwards
+      camera.scale *= 0.9;
+      console.log("scrool");
+    }
+
+    if (mouseWheel > 0) {
+      // Scroll downwards
+      camera.scale /= 0.9;
+    }
   });
 });
+
+export let mouseWheel = 0;
+
+export const setupMouseWheel = () => {
+  addEventListener("wheel", (e) => {
+    mouseWheel = Math.sign(e.deltaY);
+  });
+};
