@@ -1,0 +1,1 @@
+const ridgesType = Math.random() < 0.5 ? "islands" : "ridges";

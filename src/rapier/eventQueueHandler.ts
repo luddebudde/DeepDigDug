@@ -11,9 +11,7 @@ export const runEventQueueCheck = (eventQueue: RAPIER.EventQueue) =>
       const obj2 = colliderToEntity.get(handle2);
 
       if (started) {
-        console.log(obj1, obj2);
       } else {
-        console.log("collision ended");
       }
     }
   );

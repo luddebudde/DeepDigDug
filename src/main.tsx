@@ -1,14 +1,13 @@
 import { createRoot } from "react-dom/client";
 import { ScreenHandler } from "./ScreenHandler";
 import { game } from "./Game";
-import { Assets, Container, Graphics, Sprite } from "pixi.js";
+import {  Container, Graphics, Sprite } from "pixi.js";
 import RAPIER from "@dimforge/rapier2d";
-import { colliderToEntity, createCube } from "./createCube";
 import { keys, setupKeyboardListeners } from "./keyListner";
 import { runEventQueueCheck } from "./rapier/eventQueueHandler";
 import { Vec2 } from "./math/vec";
-import { generateWorld } from "./generateWorld";
-import { perlin } from "./math/perlin";
+import { generateWorld } from "./world_generation/generateWorld";
+
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -59,6 +58,7 @@ game.ready.then(async (app) => {
   // Post-game creation; before game loop
   const worldContainer: Container = new Container();
   worldContainer.sortableChildren = true;
+  worldContainer.sortableChildren = false;
 
   app.stage.addChild(worldContainer);
 
@@ -72,7 +72,8 @@ game.ready.then(async (app) => {
     // Center
     pos: { x: 0, y: 0 },
     // Zoom
-    scale: 1,
+    //scale: 1,
+    scale: 0.1,
   };
 
   setupKeyboardListeners();
@@ -83,11 +84,9 @@ game.ready.then(async (app) => {
 
     runEventQueueCheck(eventQueue);
 
-    const thing = perlin(100, 100, 20, 20);
-    console.log(thing);
-
-    // Sync sprite's pos with body's pos
+    // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
     objects.forEach((object) => {
+      if (object.body.isFixed()) return;
       object.sprite.position.set(
         object.body.translation().x,
         object.body.translation().y
@@ -96,9 +95,10 @@ game.ready.then(async (app) => {
     });
 
     camera.pos = player.body.translation();
+    worldContainer.scale = camera.scale;
     worldContainer.position.set(
-      -camera.pos.x + world.width / 2,
-      -camera.pos.y + world.heigth / 2
+      -camera.pos.x * camera.scale + world.width / 2,
+      -camera.pos.y * camera.scale + world.heigth / 2
     );
 
     if (keys["KeyW"]) {

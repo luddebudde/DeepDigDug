@@ -1,4 +1,4 @@
-import RAPIER from "@dimforge/rapier2d";
+import RAPIER, { PhysicsPipeline } from "@dimforge/rapier2d";
 import { Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { Vec2 } from "./math/vec";
 import { Object } from "./main";
@@ -11,32 +11,47 @@ export const createCube = async (
   worldContainer: Container,
   rapierWorld: RAPIER.World,
   objects: Object[],
-  physics: {
+  rapier: {
     pos: Vec2;
     width: number;
     height: number;
     density: number;
-    staticMode?: boolean;
-    sensorMode: boolean;
+    modes?: {
+      static?: boolean;
+      sensor?: boolean;
+      sleep?: boolean;
+    };
   },
   pixi?: {
     pixiUrl?: string;
     zIndex?: number;
+    color?: string;
   }
 ): Promise<Object> => {
+  // Basic constant declarations
   const dimensions = {
-    width: physics.width,
-    height: physics.height,
+    width: rapier.width,
+    height: rapier.height,
   };
+
+  const modes = {
+    static: rapier.modes?.static ?? false,
+    sensor: rapier.modes?.sensor ?? false,
+    sleep: rapier.modes?.sleep ?? true,
+  };
+
+  // Creating body
   const body = createBody(
     rapierWorld,
-    physics.pos,
+    rapier.pos,
     dimensions,
-    physics.density,
-    physics.staticMode,
-    physics.sensorMode
+    rapier.density,
+    modes.static,
+    modes.sensor,
+    modes.sleep
   );
 
+  // Adding texture and creating sprite
   const texture: Texture | undefined = pixi?.pixiUrl
     ? await Assets.load(pixi.pixiUrl)
     : undefined;
@@ -46,6 +61,7 @@ export const createCube = async (
     pixi?.zIndex
   );
 
+  // Create object
   const rectangle: Object = {
     pos: body.translation(),
     body: body,
@@ -53,8 +69,15 @@ export const createCube = async (
     toughness: 100,
   };
 
+  // Pre-loop sync the BODY and the SPRITE
+  const translation = body.translation();
+  sprite.position.set(translation.x, translation.y);
+  sprite.rotation = body.rotation();
+
+  // Add to eventQueue
   colliderToEntity.set(rectangle.body.handle, rectangle);
 
+  // Push into regular JS arrays
   objects.push(rectangle);
   worldContainer.addChild(sprite);
 

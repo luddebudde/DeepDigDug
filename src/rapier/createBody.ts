@@ -11,7 +11,8 @@ export const createBody = (
   },
   density: number,
   staticMode?: boolean,
-  sensorMode?: boolean
+  sensorMode?: boolean,
+  sleepMode?: boolean
 ): RAPIER.RigidBody => {
   const isStatic = staticMode ?? false;
   const isSensor = sensorMode ?? false;
@@ -28,7 +29,7 @@ export const createBody = (
     dimensions.height / 2
   )
     .setDensity(density)
-    .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+    .setActiveEvents(staticMode === true ? RAPIER.ActiveEvents.COLLISION_EVENTS : RAPIER.ActiveEvents.NONE);
 
   // Apply collider
   rapierWorld.createCollider(colliderMesh, body).setSensor(isSensor);

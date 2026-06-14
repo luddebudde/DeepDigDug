@@ -51,6 +51,7 @@ export const perlin = (
       linearInterpolation(v, dotTopRight, dotBottomRight)
     );
   });
+
   return step2;
 };
 const linearInterpolation = (t: number, a1: number, a2: number): number =>

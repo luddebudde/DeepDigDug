@@ -12,7 +12,7 @@ export const createSprite =  (
       dimensions.width,
       dimensions.height
     );
-
+    graphics.cullable = true;
     //  const alpha = physics.sensorMode ? 0.5 : 1;
     return graphics;
   }
@@ -22,6 +22,7 @@ export const createSprite =  (
   sprite.width = dimensions.width;
   sprite.height = dimensions.height;
   sprite.zIndex = priorityIndex ?? 0;
+  sprite.cullable = true;
 
   //  const alpha = physics.sensorMode ? 0.5 : 1;
   return sprite;
