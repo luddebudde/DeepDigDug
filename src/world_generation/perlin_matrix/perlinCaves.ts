@@ -8,13 +8,14 @@ import {
   p2Weight,
   p3,
   p3Weight,
-  boxSize,
+  blockSize,
   horizontalBoxes,
   worldHeight,
   worldWidth,
   rockness,
   rockEarthRatio,
   isWinter,
+  xWorldOffset,
 } from "../perlinConstants";
 
 //const cavesThresHold = random(0.2, 0.4);
@@ -32,8 +33,8 @@ export const caves = () =>
       ),
       (val, column, row) => {
         const coord = createVec(
-          column * boxSize - (horizontalBoxes * boxSize) / 2,
-          row * boxSize
+          column * blockSize + xWorldOffset,
+          row * blockSize
         );
 
         return [(val + 1) / 2, coord] as const;

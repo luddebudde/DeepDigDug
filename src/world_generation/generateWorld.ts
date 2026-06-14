@@ -1,15 +1,25 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Container } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { createCube } from "../createCube";
 import { Object } from "../main";
 import { materials } from "./materials";
 import { mapMat } from "../math/matrix";
 import { caves } from "./perlin_matrix/perlinCaves";
-import { isWinter } from "./perlinConstants";
+import {
+  blockSize,
+  isWinter,
+  worldHeight,
+  worldWidth,
+  xWorldOffset,
+} from "./perlinConstants";
 import { Vec2 } from "../math/vec";
+import { ridges } from "./perlin_matrix/perlinRidges";
+import { log } from "console";
+import { zeros2 } from "../math/zeroes";
+import { Block, createChunk } from "../createChunk";
 
 type MaterialKey = keyof typeof materials;
-type TerrainEntry = [number, MaterialKey, Vec2];
+type TerrainEntry = [number, MaterialKey, Vec2, number, number];
 const sprites = [
   "dirt_texture.png",
   "coal_texture.png",
@@ -18,22 +28,26 @@ const sprites = [
   "diamond_ore.png",
 ];
 
-//  const terrainWithoutGrass = Math.random() > 0.5 ? ridges() : caves()
-const terrainWithoutGrass = caves();
+const terrainType = Math.random() > 0.5 ? "cave" : "cave";
+const terrainWithoutGrass = terrainType === "cave" ? caves() : ridges();
+//const terrainWithoutGrass = ridges();
+//console.log(terrainType);
 
 const generatedTerrain = mapMat(
   terrainWithoutGrass,
   (
     [value, material, pos],
-    row,
-    column
-  ): TerrainEntry | [number, "air", Vec2] => {
+    column,
+    row
+  ): TerrainEntry | [number, "air", Vec2, number, number] => {
     const isEarth = material === "earth";
-    const isBelowAir = terrainWithoutGrass[row][column - 1]?.[1] === "air";
+    const isBelowAir = terrainWithoutGrass[column][row - 1]?.[1] === "air";
     return [
       value,
       isEarth && isBelowAir ? (isWinter ? "snow" : "grass") : material,
       pos,
+      column,
+      row,
     ];
   }
 )
@@ -45,27 +59,84 @@ export const generateWorld = async (
   rapier: RAPIER.World,
   objects: Object[]
 ): Promise<[Object, Object[]]> => {
-  const boxes = [...generatedTerrain].map(([val, materialKey, coord]) => {
-    const material = materials[materialKey];
-    const color = material.color(val);
+  const chunks: Block[][] = [[]];
 
-    return createCube(
-      worldContainer,
-      rapier,
-      objects,
-      {
+  const boxes = [...generatedTerrain].map(
+    ([val, materialKey, coord, column, row]) => {
+      const material = materials[materialKey];
+      // const color = material.color(val);
+
+      const block: Block = {
+        material: material,
         pos: coord,
-        width: 50,
-        height: 50,
-        density: material.density,
-        modes: {
-          static: true,
-          sleep: true,
+        row: row,
+        column: column,
+      };
+
+      // console.log("column", column, "row", row);
+
+      createChunk(worldContainer, rapier, chunks, block);
+      //   console.log(chunks);
+
+      return createCube(
+        worldContainer,
+        rapier,
+        objects,
+        {
+          pos: coord,
+          width: blockSize,
+          height: blockSize,
+          density: material.density,
+          modes: {
+            static: true,
+            sleep: true,
+          },
         },
-      },
-      { pixiUrl: material.png }
-    );
-  });
+        { pixiUrl: material.png, zIndex: 1 }
+      );
+    }
+  );
+  const CHUNK_SIZE = 32;
+  const chunkWorldSize = CHUNK_SIZE * blockSize;
+
+  // UN-COMMENT THIS LATER, FOR DEBUGGING PURPOSES
+  // chunks.forEach((column, columnIndex) => {
+  //   column.forEach((row, rowIndex) => {
+  //     createCube(
+  //       worldContainer,
+  //       rapier,
+  //       objects,
+  //       {
+  //         pos: {
+  //           x: columnIndex * chunkWorldSize + xWorldOffset + chunkWorldSize / 2,
+  //           y: rowIndex * chunkWorldSize + chunkWorldSize / 2,
+  //         },
+  //         width: blockSize * 32,
+  //         height: blockSize * 32,
+  //         density: 0,
+  //         modes: {
+  //           static: true,
+  //           sleep: true,
+  //           sensor: true,
+  //         },
+  //       },
+  //       { pixiUrl: "stone_texture.png", zIndex: 0 }
+  //     );
+
+  // const graphics = new Graphics();
+
+  // graphics
+  //   .rect(
+  //     columnIndex * 32 * blockSize + xWorldOffset,
+  //     rowIndex * 32 * blockSize,
+  //     32 * blockSize,
+  //     32 * blockSize
+  //   )
+  //   .fill("red");
+
+  // worldContainer.addChild(graphics);
+  //   });
+  // });
 
   const worldBlocks = await Promise.all(boxes);
 
@@ -83,7 +154,7 @@ export const generateWorld = async (
         sleep: false,
       },
     },
-    { pixiUrl: "coal_texture.png", zIndex: 1 }
+    { pixiUrl: "coal_texture.png", zIndex: 5 }
   );
 
   return [player, worldBlocks];

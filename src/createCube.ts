@@ -78,7 +78,10 @@ export const createCube = async (
   colliderToEntity.set(rectangle.body.handle, rectangle);
 
   // Push into regular JS arrays
-  objects.push(rectangle);
+  if (!modes.sleep) {
+    objects.push(rectangle);
+  }
+
   worldContainer.addChild(sprite);
 
   return rectangle;

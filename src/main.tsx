@@ -51,7 +51,7 @@ export type Object = {
   toughness: number;
 };
 
-const objects: Object[] = [];
+const wakeObjects: Object[] = [];
 
 // Creating "game"
 game.ready.then(async (app) => {
@@ -65,15 +65,15 @@ game.ready.then(async (app) => {
   const [player, worldBlocks] = await generateWorld(
     worldContainer,
     rapier,
-    objects
+    wakeObjects
   );
 
   const camera = {
     // Center
     pos: { x: 0, y: 0 },
     // Zoom
-    //scale: 1,
     scale: 0.5,
+    //scale: 0.1,
   };
 
   setupKeyboardListeners();
@@ -85,12 +85,10 @@ game.ready.then(async (app) => {
     runEventQueueCheck(eventQueue);
 
     // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
-    objects.forEach((object) => {
+    wakeObjects.forEach((object) => {
       if (object.body.isFixed()) return;
-      object.sprite.position.set(
-        object.body.translation().x,
-        object.body.translation().y
-      );
+      const pos = object.body.translation();
+      object.sprite.position.set(pos.x, pos.y);
       object.sprite.rotation = object.body.rotation();
     });
 
@@ -113,16 +111,24 @@ game.ready.then(async (app) => {
     if (keys["KeyD"]) {
       player.body.applyImpulse({ x: 100, y: 0 }, true);
     }
+    if (keys["KeyO"]) {
+      camera.scale *= 0.97;
+    }
+    if (keys["KeyP"]) {
+      camera.scale /= 0.97;
+    }
 
     if (mouseWheel < 0) {
       // Scroll upwards
       camera.scale *= 0.9;
+      mouseWheel = 0;
       console.log("scrool");
     }
 
     if (mouseWheel > 0) {
       // Scroll downwards
       camera.scale /= 0.9;
+      mouseWheel = 0;
     }
   });
 });
