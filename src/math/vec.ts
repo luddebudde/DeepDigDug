@@ -1,7 +1,7 @@
 export type Vec2 = {
-    x: number
-    y: number
-}
+  x: number;
+  y: number;
+};
 
 export const add = (num1: Vec2, num2: Vec2): Vec2 => {
   return { x: num1.x + num2.x, y: num1.y + num2.y };
@@ -57,7 +57,7 @@ export const dot = (num1: Vec2, num2: Vec2) => {
   return num1.x * num2.x + num1.y * num2.y;
 };
 
-const normalized = (vec: Vec2): Vec2 => {
+export const normalise = (vec: Vec2): Vec2 => {
   const length = lengthVec(vec);
   if (length === 0) {
     return { x: 1, y: 0 };
@@ -74,4 +74,9 @@ export const maxVar = (num1: Vec2, max: number): Vec2 => {
 
 export const minVar = (num1: Vec2, min: number): Vec2 => {
   return { x: Math.min(num1.x, min), y: Math.min(num1.y, min) };
+};
+
+export const createVec = (x: number, y: number): Vec2 => {
+  const vec = { x, y };
+  return vec;
 };

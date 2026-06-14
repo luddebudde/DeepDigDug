@@ -6,8 +6,9 @@ import RAPIER from "@dimforge/rapier2d";
 import { colliderToEntity, createCube } from "./createCube";
 import { keys, setupKeyboardListeners } from "./keyListner";
 import { runEventQueueCheck } from "./rapier/eventQueueHandler";
-import { Vec2 } from "./vec2";
+import { Vec2 } from "./math/vec";
 import { generateWorld } from "./generateWorld";
+import { perlin } from "./math/perlin";
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -30,7 +31,12 @@ const rapierHook = {
     return RAPIER.SolverFlags.COMPUTE_IMPULSE;
   },
 
-  filterIntersectionPair(collider1: any, collider2: any, body1: any, body2: any) {
+  filterIntersectionPair(
+    collider1: any,
+    collider2: any,
+    body1: any,
+    body2: any
+  ) {
     // Return false to skip intersection testing.
     // Return true to continue and test overlap.
     return true;
@@ -43,7 +49,7 @@ export type Object = {
   pos: Vec2;
   body: RAPIER.RigidBody;
   sprite: Sprite | Graphics;
-  toughness: number
+  toughness: number;
 };
 
 const objects: Object[] = [];
@@ -76,6 +82,9 @@ game.ready.then(async (app) => {
     rapier.step(eventQueue, rapierHook);
 
     runEventQueueCheck(eventQueue);
+
+    const thing = perlin(100, 100, 20, 20);
+    console.log(thing);
 
     // Sync sprite's pos with body's pos
     objects.forEach((object) => {

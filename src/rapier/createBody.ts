@@ -1,5 +1,5 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Vec2 } from "../vec2";
+import { Vec2 } from "../math/vec";
 
 export const createBody = (
   rapierWorld: RAPIER.World,

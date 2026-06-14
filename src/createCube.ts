@@ -1,6 +1,6 @@
 import RAPIER from "@dimforge/rapier2d";
 import { Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
-import { Vec2 } from "./vec2";
+import { Vec2 } from "./math/vec";
 import { Object } from "./main";
 import { createBody } from "./rapier/createBody";
 import { createSprite } from "./pixi/createSprite";
