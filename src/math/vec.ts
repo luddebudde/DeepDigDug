@@ -3,6 +3,11 @@ export type Vec2 = {
   y: number;
 };
 
+export const origo = {
+  x: 0,
+  y: 0,
+};
+
 export const add = (num1: Vec2, num2: Vec2): Vec2 => {
   return { x: num1.x + num2.x, y: num1.y + num2.y };
 };
@@ -79,4 +84,8 @@ export const minVar = (num1: Vec2, min: number): Vec2 => {
 export const createVec = (x: number, y: number): Vec2 => {
   const vec = { x, y };
   return vec;
+};
+
+export const cubify = (value: number): Vec2 => {
+  return { x: value, y: value };
 };

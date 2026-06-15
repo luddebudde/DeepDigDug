@@ -3,7 +3,6 @@ import { Vec2 } from "../math/vec";
 
 export const createBody = (
   rapierWorld: RAPIER.World,
-
   pos: Vec2,
   dimensions: {
     width: number;

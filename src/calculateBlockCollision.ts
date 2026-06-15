@@ -1,79 +1,90 @@
-import { ColliderDesc } from "@dimforge/rapier2d";
-import { Chunk } from "./createChunk";
-import { Object } from "./main";
-import { add, addVar, multVar, Vec2 } from "./math/vec";
-import {
-  blockSize,
-  chunkSize,
-  xWorldOffset,
-} from "./world_generation/perlinConstants";
+import { Chunk, Block } from "./world_generation/createChunk";
+import { Object } from "./createCube";
+import { findBlock } from "./findWorldBlocks";
+import { multVar, add, Vec2, origo } from "./math/vec";
+import { zeros2 } from "./math/zeroes";
+import { blockSize } from "./world_generation/perlinConstants";
 
-// Add safety measures, in case the selected "column" and "row" is undefined
-export const getWorldIndex = (
-  pos: Vec2
-): [blockColumnIndex: number, blockRowIndex: number] => {
-  const blockColumnIndex = Math.floor((pos.x - xWorldOffset) / blockSize);
-  const blockRowIndex = Math.floor(pos.y / blockSize);
+// export const calculateBlockCollision = (
+//   movingUnit: Object,
+//   chunks: Chunk[][],
+//   dt: number
+// ) => {
+//   const inputtedPos = movingUnit.body.translation();
+//   const inputtedVel = multVar(movingUnit.body.linvel(), dt);
+//   const futurePos = add(inputtedPos, inputtedVel);
 
-  return [blockColumnIndex, blockRowIndex];
-};
+//   const leftSide = futurePos.x - movingUnit.dimensions.width / 2;
+//   const rightSide = futurePos.x + movingUnit.dimensions.width / 2;
+//   const upSide = futurePos.y - movingUnit.dimensions.height / 2;
+//   const downSide = futurePos.y + movingUnit.dimensions.height / 2;
 
-// Add safety measures, in case the selected "column" and "row" is undefined
-export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk => {
-  const [blockColumnIndex, blockRowIndex] = getWorldIndex(pos);
-  //console.log(blockColumnIndex, blockRowIndex);
+//   const testPoints = [
+//     // Left
+//     { x: leftSide, y: futurePos.y },
+//     // Right
+//     { x: rightSide, y: futurePos.y },
+//     // Up
+//     { x: futurePos.x, y: upSide },
+//     // Down
+//     { x: futurePos.x, y: downSide },
+//   ];
 
-  const foundChunk =
-    chunks[Math.floor(blockColumnIndex / chunkSize)][
-      Math.floor(blockRowIndex / chunkSize)
-    ];
+//   //console.log(movingUnit);
 
-  if (!foundChunk) throw "error: couldn't find chunk";
+//   testPoints.forEach((sidePos: Vec2) => {
+//     const block = findBlock(add(sidePos, inputtedVel), chunks);
+//     if (block === undefined) return;
+//     if (block.material.solid) {
+//       movingUnit.body.setTranslation(block.pos, true);
+//       movingUnit.body.setLinvel(origo, true);
+//       //console.log(inputtedPos, block.pos);
+//     }
+//   });
 
-  return foundChunk;
-};
-
-export const findBlock = (pos: Vec2, chunks: Chunk[][]) => {
-  const activeChunk: Chunk = findChunk(pos, chunks);
-  const [worldColumnIndex, worldRowIndex] = getWorldIndex(pos);
-
-  const localColumn = ((worldColumnIndex % chunkSize) + chunkSize) % chunkSize;
-
-  const localRow = ((worldRowIndex % chunkSize) + chunkSize) % chunkSize;
-
-  //console.log(worldColumnIndex);
-
-  return activeChunk.blocks[localColumn][localRow];
-};
+//   collidingBlocks.forEach((block) => {});
+// };
 
 export const calculateBlockCollision = (
   movingUnit: Object,
   chunks: Chunk[][],
   dt: number
 ) => {
-  const inputtedPos = movingUnit.body.translation();
-  const inputtedVel = multVar(movingUnit.body.linvel(), dt);
+  const pos = movingUnit.body.translation();
+  const vel = movingUnit.body.linvel();
+  const dtVel = multVar(vel, dt);
+  const futurePos = add(pos, dtVel);
 
-  const leftSide = inputtedPos.x - movingUnit.dimensions.width / 2;
-  const rightSide = inputtedPos.x + movingUnit.dimensions.width / 2;
-  const upSide = inputtedPos.y - movingUnit.dimensions.height / 2;
-  const downSide = inputtedPos.y + movingUnit.dimensions.height / 2;
+  const width = movingUnit.dimensions.width;
+  const height = movingUnit.dimensions.height;
 
-  const sides: number[] = [leftSide, rightSide, upSide, downSide];
+  const centerBlock = findBlock(futurePos, chunks);
 
-  const futurePos = add(inputtedPos, multVar(inputtedVel, dt));
-  //console.log(movingUnit);
+  const nearbyBlockGrid = [];
 
-  const collidingBlocks = [];
-  sides.forEach((sidePos: number) => {
-    collidingBlocks.push(findBlock(addVar(inputtedVel, sidePos), chunks));
-  });
+  const playerLeft = futurePos.x - width / 2;
+  const playerRight = futurePos.x + width / 2;
+  const playerTop = futurePos.y - height / 2;
+  const playerBottom = futurePos.y + height / 2;
 
-  console.log(collidingBlocks);
+  nearbyBlockGrid.map((column, columnIndex) =>
+    column.map((block, rowIndex) => {
+      const blockLeft = block.pos.x - blockSize / 2;
+      const blockRight = block.pos.x + blockSize / 2;
+      const blockTop = block.pos.y - blockSize / 2;
+      const blockBottom = block.pos.y + blockSize / 2;
 
-  collidingBlocks.forEach((block) => {
-    if (block.material.solid) {
-      movingUnit.body.applyImpulse(multVar(inputtedVel, -1), true);
-    }
-  });
+      if (playerLeft < blockRight && playerRight > blockLeft) {
+        ifCollide(movingUnit, block, { x: -vel.x, y: vel.y });
+      }
+      if (playerTop < blockBottom && playerBottom > blockTop) {
+        ifCollide(movingUnit, block, { x: vel.x, y: -vel.y });
+      }
+    })
+  );
+};
+
+const ifCollide = (movingUnit: Object, block: Block, newVel: Vec2) => {
+  if (!block.material.solid) return;
+  movingUnit.body.setLinvel(newVel, true);
 };

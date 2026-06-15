@@ -9,8 +9,8 @@ import { Vec2 } from "./math/vec";
 import { log } from "node:console";
 import { calculateBlockCollision } from "./calculateBlockCollision";
 import { generateWorld } from "./world_generation/generateWorld";
-import { reRenderChunk } from "./pixi/renderChunk";
-import { Chunk } from "./createChunk";
+import { changeChunksInRender, reRenderChunk } from "./pixi/renderChunk";
+import { Chunk } from "./world_generation/createChunk";
 import { Object } from "./createCube";
 
 // Refactor segments of code to seperate files
@@ -79,7 +79,7 @@ game.ready.then(async (app) => {
   // Game loop!
   app.ticker.add((ticker) => {
     const dt = ticker.deltaMS / 1000;
-
+    // calculateBlockCollision(player, chunks, dt);
     rapier.step(eventQueue, rapierHook);
 
     runEventQueueCheck(eventQueue);
@@ -91,7 +91,9 @@ game.ready.then(async (app) => {
     //   }
     // });
 
-    calculateBlockCollision(player, chunks, dt);
+    const playerPos = player.body.translation();
+
+    changeChunksInRender(playerPos, chunks);
 
     // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
     wakeObjects.forEach((object) => {
@@ -101,7 +103,7 @@ game.ready.then(async (app) => {
       object.sprite.rotation = object.body.rotation();
     });
 
-    camera.pos = player.body.translation();
+    camera.pos = playerPos;
     worldContainer.scale = camera.scale;
     worldContainer.position.set(
       -camera.pos.x * camera.scale + world.width / 2,

@@ -9,6 +9,7 @@ export type Material = {
   opacity?: number;
 };
 
+// CHANGE MATERIAL NAMES
 export const materials: Record<string, Material> = {
   air: {
     color: (value: number) =>
@@ -48,7 +49,6 @@ export const materials: Record<string, Material> = {
     solid: true,
     png: "stone_texture.png",
   },
-
   ice: {
     color: (val: number) => rgb(val * 0.5, val * 0.7, val * 1),
     density: 0.001,

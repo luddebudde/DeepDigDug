@@ -6,14 +6,18 @@ import {
   Sprite,
   Texture,
 } from "pixi.js";
-import { Block, Chunk } from "../createChunk";
+import { Block, Chunk } from "../world_generation/createChunk";
 import {
   blockSize,
-  chunkSize,
+  chunkRelSize,
   xWorldOffset,
 } from "../world_generation/perlinConstants";
 import { createSprite } from "./createSprite";
 import { promises } from "node:dns";
+import { findBorderingChunks } from "../findWorldBlocks";
+import { createVec, cubify, Vec2 } from "../math/vec";
+import { createBody } from "../rapier/createBody";
+import RAPIER from "@dimforge/rapier2d";
 
 export const reRenderChunk = (
   app: Application,
@@ -27,19 +31,21 @@ export const reRenderChunk = (
 export const renderChunk = async (
   app: Application,
   worldContainer: Container,
-  chunk: Chunk
+  chunk: Chunk,
+  assets
 ) => {
   const chunkContainer = new Container();
   chunkContainer.cacheAsTexture(true);
 
-  const trueChunkSize = chunkSize * blockSize;
+  const trueChunkSize = chunkRelSize * blockSize;
 
   const sprites = await Promise.all(
     chunk.blocks
       .flat()
       .filter((block): block is Block => block !== undefined)
       .map(async (block: Block) => {
-        const texture: Texture = await Assets.load(block.material.png);
+        //const texture: Texture = await Assets.load(block.material.png);
+        const texture = assets[block.materialKey];
 
         const sprite = createSprite(
           { width: blockSize, height: blockSize },
@@ -60,8 +66,8 @@ export const renderChunk = async (
   chunkContainer.addChild(...sprites);
 
   const renderTexture = RenderTexture.create({
-    width: chunkSize * blockSize,
-    height: chunkSize * blockSize,
+    width: chunkRelSize * blockSize,
+    height: chunkRelSize * blockSize,
   });
   chunk.renderTexture = renderTexture;
   app.renderer.render({
@@ -75,4 +81,52 @@ export const renderChunk = async (
 
   worldContainer.addChild(chunkSprite);
   chunkContainer.destroy({ children: true });
+};
+
+let chunksInRender: Chunk[] = [] as Chunk[];
+
+export const changeChunksInRender = (
+  rapierWorld: RAPIER.World,
+  playerPos: Vec2,
+  chunks: Chunk[][]
+) => {
+  const range = 0;
+
+  const newlyRenderedChunks: Chunk[] = findBorderingChunks(
+    playerPos,
+    chunks,
+    range
+  ).flat();
+
+  const removedChunks = chunksInRender.filter((chunk: Chunk) =>
+    newlyRenderedChunks.includes(chunk)
+  );
+
+  newlyRenderedChunks.map((chunk: Chunk) => {
+    const chunkBody = chunk.body;
+    chunk.blocks.flat().map((block: Block) => {
+      block.collider;
+      const colliderMesh = RAPIER.ColliderDesc.cuboid(
+        blockSize / 2,
+        blockSize / 2
+      ).setDensity(block.material.density);
+
+      // Apply collider
+      const collider: RAPIER.Collider = rapierWorld.createCollider(
+        colliderMesh,
+        chunkBody
+      );
+      collider.setSensor(!block.material.solid ? true : false);
+      block.collider = collider;
+    });
+  });
+  console.log(removedChunks, newlyRenderedChunks);
+
+  removedChunks.map((chunk: Chunk) => {
+    chunk.blocks.flat().map((block: Block) => {
+      rapierWorld.removeRigidBody(block.collider);
+    });
+  });
+
+  chunksInRender = newlyRenderedChunks;
 };

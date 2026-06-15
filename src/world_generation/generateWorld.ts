@@ -24,7 +24,7 @@ import { Vec2 } from "../math/vec";
 import { ridges } from "./perlin_matrix/perlinRidges";
 import { log } from "console";
 import { zeros2 } from "../math/zeroes";
-import { Block, Chunk, createChunk } from "../createChunk";
+import { Block, Chunk, createChunk } from "./createChunk";
 import { createSprite, getTexture } from "../pixi/createSprite";
 import { renderChunk } from "../pixi/renderChunk";
 
@@ -108,9 +108,18 @@ export const generateWorld = async (
   //   { pixiUrl: "stone_texture.png", zIndex: 0 }
   // );
 
+  const assets = {
+    air: await Assets.load(""),
+    rock: await Assets.load("stone_texture.png"),
+    earth: await Assets.load("dirt_texture.png"),
+    grass: await Assets.load("ladder_sprite.png"),
+    snow: await Assets.load("diamond_ore.png"),
+    ice: await Assets.load("silver_ore.png"),
+  };
+
   const chunkPromises = chunks.flatMap((chunkColumn: Chunk[], columnIndex) =>
     chunkColumn.map((chunk: Chunk, rowIndex) =>
-      renderChunk(app, worldContainer, chunk)
+      renderChunk(app, worldContainer, chunk, assets)
     )
   );
 

@@ -1,9 +1,9 @@
 import RAPIER from "@dimforge/rapier2d";
 import { Container, RenderTexture } from "pixi.js";
-import { Material } from "./world_generation/materials";
-import { Vec2 } from "./math/vec";
-import { chunkSize } from "./world_generation/perlinConstants";
-import { zeros2 } from "./math/zeroes";
+import { Material } from "./materials";
+import { Vec2 } from "../math/vec";
+import { chunkRelSize, chunkSize } from "./perlinConstants";
+import { zeros2 } from "../math/zeroes";
 
 export type Block = {
   material: Material;
@@ -11,6 +11,7 @@ export type Block = {
   column: number;
   row: number;
   materialKey: string;
+  collider: RAPIER.Collider | undefined;
 };
 
 export type Chunk = {
@@ -19,6 +20,7 @@ export type Chunk = {
   row: number;
   renderTexture: RenderTexture;
   dirty: boolean;
+  body: RAPIER.RigidBody;
 };
 
 // WILL CRASH IF SPACE BETWEEN TWO CHUNKS IS A WHOLE EMPTY CHUNK
@@ -32,9 +34,9 @@ export const createChunk = (
   const row = block.row;
 
   // X-pos
-  const columnIndex = Math.floor(column / chunkSize);
+  const columnIndex = Math.floor(column / chunkRelSize);
   // Y-pos
-  const rowIndex = Math.floor(row / chunkSize);
+  const rowIndex = Math.floor(row / chunkRelSize);
 
   // const blocks = [// Column 1 [// Row 1, // Row 2], // Column 2 [// Row 1, // Row 2], // Column 3[]]
 
@@ -43,12 +45,18 @@ export const createChunk = (
   }
 
   if (chunks[columnIndex][rowIndex] === undefined) {
+    const bodyDesc = RAPIER.RigidBodyDesc.fixed();
+    bodyDesc.setTranslation(
+      columnIndex * chunkSize + chunkSize / 2,
+      rowIndex * chunkSize + chunkSize / 2
+    );
     chunks[columnIndex][rowIndex] = {
       blocks: [[]] as Block[][],
       column: columnIndex,
       row: rowIndex,
       renderTexture: "" as RenderTexture,
       dirty: false,
+      body: rapierWorld.createRigidBody(bodyDesc),
     };
   }
   const chosenChunk = chunks[columnIndex][rowIndex];
