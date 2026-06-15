@@ -1,36 +1,79 @@
+import { ColliderDesc } from "@dimforge/rapier2d";
 import { Chunk } from "./createChunk";
 import { Object } from "./main";
-import { Vec2 } from "./math/vec";
-import { blockSize, chunkSize } from "./world_generation/perlinConstants";
+import { add, addVar, multVar, Vec2 } from "./math/vec";
+import {
+  blockSize,
+  chunkSize,
+  xWorldOffset,
+} from "./world_generation/perlinConstants";
 
 // Add safety measures, in case the selected "column" and "row" is undefined
-export const getWorldPos = (
+export const getWorldIndex = (
   pos: Vec2
-): [columnIndex: number, rowIndex: number] => {
-  const columnIndex = Math.floor(pos.x / (blockSize * chunkSize));
-  const rowIndex = Math.floor(pos.y / (blockSize * chunkSize));
+): [blockColumnIndex: number, blockRowIndex: number] => {
+  const blockColumnIndex = Math.floor((pos.x - xWorldOffset) / blockSize);
+  const blockRowIndex = Math.floor(pos.y / blockSize);
 
-  return [columnIndex, rowIndex];
+  return [blockColumnIndex, blockRowIndex];
 };
 
 // Add safety measures, in case the selected "column" and "row" is undefined
 export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk => {
-  const [columnIndex, rowIndex] = getWorldPos(pos);
-  const foundChunk = chunks[columnIndex][rowIndex];
+  const [blockColumnIndex, blockRowIndex] = getWorldIndex(pos);
+  //console.log(blockColumnIndex, blockRowIndex);
+
+  const foundChunk =
+    chunks[Math.floor(blockColumnIndex / chunkSize)][
+      Math.floor(blockRowIndex / chunkSize)
+    ];
 
   if (!foundChunk) throw "error: couldn't find chunk";
 
-  return chunks[columnIndex][rowIndex];
+  return foundChunk;
+};
+
+export const findBlock = (pos: Vec2, chunks: Chunk[][]) => {
+  const activeChunk: Chunk = findChunk(pos, chunks);
+  const [worldColumnIndex, worldRowIndex] = getWorldIndex(pos);
+
+  const localColumn = ((worldColumnIndex % chunkSize) + chunkSize) % chunkSize;
+
+  const localRow = ((worldRowIndex % chunkSize) + chunkSize) % chunkSize;
+
+  //console.log(worldColumnIndex);
+
+  return activeChunk.blocks[localColumn][localRow];
 };
 
 export const calculateBlockCollision = (
   movingUnit: Object,
-  chunks: Chunk[][]
+  chunks: Chunk[][],
+  dt: number
 ) => {
-  const currentPos = movingUnit.body.translation();
-  const currentVel = movingUnit.body.linvel();
+  const inputtedPos = movingUnit.body.translation();
+  const inputtedVel = multVar(movingUnit.body.linvel(), dt);
 
-  const selectedChunk = findChunk;
+  const leftSide = inputtedPos.x - movingUnit.dimensions.width / 2;
+  const rightSide = inputtedPos.x + movingUnit.dimensions.width / 2;
+  const upSide = inputtedPos.y - movingUnit.dimensions.height / 2;
+  const downSide = inputtedPos.y + movingUnit.dimensions.height / 2;
 
-  movingUnit.body.setLinvel({ x: 0, y: 0 }, true);
+  const sides: number[] = [leftSide, rightSide, upSide, downSide];
+
+  const futurePos = add(inputtedPos, multVar(inputtedVel, dt));
+  //console.log(movingUnit);
+
+  const collidingBlocks = [];
+  sides.forEach((sidePos: number) => {
+    collidingBlocks.push(findBlock(addVar(inputtedVel, sidePos), chunks));
+  });
+
+  console.log(collidingBlocks);
+
+  collidingBlocks.forEach((block) => {
+    if (block.material.solid) {
+      movingUnit.body.applyImpulse(multVar(inputtedVel, -1), true);
+    }
+  });
 };

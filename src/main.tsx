@@ -11,6 +11,7 @@ import { calculateBlockCollision } from "./calculateBlockCollision";
 import { generateWorld } from "./world_generation/generateWorld";
 import { reRenderChunk } from "./pixi/renderChunk";
 import { Chunk } from "./createChunk";
+import { Object } from "./createCube";
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -47,13 +48,6 @@ const rapierHook = {
 
 createRoot(document.getElementById("root")!).render(<ScreenHandler />);
 
-export type Object = {
-  pos: Vec2;
-  body: RAPIER.RigidBody;
-  sprite: Sprite | Graphics;
-  toughness: number;
-};
-
 const wakeObjects: Object[] = [];
 
 // Creating "game"
@@ -83,7 +77,9 @@ game.ready.then(async (app) => {
   setupKeyboardListeners();
 
   // Game loop!
-  app.ticker.add(() => {
+  app.ticker.add((ticker) => {
+    const dt = ticker.deltaMS / 1000;
+
     rapier.step(eventQueue, rapierHook);
 
     runEventQueueCheck(eventQueue);
@@ -95,6 +91,8 @@ game.ready.then(async (app) => {
     //   }
     // });
 
+    calculateBlockCollision(player, chunks, dt);
+
     // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
     wakeObjects.forEach((object) => {
       if (object.body.isFixed()) return;
@@ -103,7 +101,6 @@ game.ready.then(async (app) => {
       object.sprite.rotation = object.body.rotation();
     });
 
-    // calculateBlockCollision(player, chunks)
     camera.pos = player.body.translation();
     worldContainer.scale = camera.scale;
     worldContainer.position.set(

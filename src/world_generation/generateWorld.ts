@@ -40,8 +40,6 @@ const sprites = [
 
 const terrainType = Math.random() > 0.5 ? "cave" : "cave";
 const terrainWithoutGrass = terrainType === "cave" ? caves() : ridges();
-//const terrainWithoutGrass = ridges();
-//console.log(terrainType);
 
 const generatedTerrain = mapMat(
   terrainWithoutGrass,
@@ -60,9 +58,9 @@ const generatedTerrain = mapMat(
       row,
     ];
   }
-)
-  .flat()
-  .filter((entry): entry is TerrainEntry => entry[1] !== "air");
+).flat();
+// REMOVE THIS; ALLOW AIR BLOCKS INTO WORLD
+//.filter((entry): entry is TerrainEntry => entry[1] !== "air");
 
 export const generateWorld = async (
   app: Application,
@@ -77,6 +75,7 @@ export const generateWorld = async (
 
     const block: Block = {
       material: material,
+      materialKey: materialKey,
       pos: coord,
       row: row,
       column: column,
@@ -110,12 +109,13 @@ export const generateWorld = async (
   // );
 
   const chunkPromises = chunks.flatMap((chunkColumn: Chunk[], columnIndex) =>
-    chunkColumn.map(async (chunk: Chunk, rowIndex) => {
-      renderChunk(app, worldContainer, chunk);
-    })
+    chunkColumn.map((chunk: Chunk, rowIndex) =>
+      renderChunk(app, worldContainer, chunk)
+    )
   );
 
-  const worldChunks: Chunk[][] = await Promise.all(chunkPromises);
+  await Promise.all(chunkPromises);
+  //const worldChunks: Chunk[][] = await Promise.all(chunkPromises);
 
   const player = await createCube(
     worldContainer,

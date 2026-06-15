@@ -1,11 +1,24 @@
 import RAPIER, { PhysicsPipeline } from "@dimforge/rapier2d";
 import { Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { Vec2 } from "./math/vec";
-import { Object } from "./main";
+
 import { createBody } from "./rapier/createBody";
 import { createSprite } from "./pixi/createSprite";
 
 export const colliderToEntity = new Map();
+
+export type Dimensions = {
+  width: number;
+  height: number;
+};
+
+export type Object = {
+  pos: Vec2;
+  body: RAPIER.RigidBody;
+  sprite: Sprite | Graphics;
+  toughness: number;
+  dimensions: Dimensions;
+};
 
 export const createCube = async (
   worldContainer: Container,
@@ -29,7 +42,7 @@ export const createCube = async (
   }
 ): Promise<Object> => {
   // Basic constant declarations
-  const dimensions = {
+  const dimensions: Dimensions = {
     width: rapier.width,
     height: rapier.height,
   };
@@ -67,6 +80,7 @@ export const createCube = async (
     body: body,
     sprite: sprite,
     toughness: 100,
+    dimensions,
   };
 
   // Pre-loop sync the BODY and the SPRITE
