@@ -6,8 +6,11 @@ import RAPIER from "@dimforge/rapier2d";
 import { keys, setupKeyboardListeners } from "./keyListner";
 import { runEventQueueCheck } from "./rapier/eventQueueHandler";
 import { Vec2 } from "./math/vec";
-import { generateWorld } from "./world_generation/generateWorld";
 import { log } from "node:console";
+import { calculateBlockCollision } from "./calculateBlockCollision";
+import { generateWorld } from "./world_generation/generateWorld";
+import { reRenderChunk } from "./pixi/renderChunk";
+import { Chunk } from "./createChunk";
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -62,7 +65,8 @@ game.ready.then(async (app) => {
 
   app.stage.addChild(worldContainer);
 
-  const [player, worldBlocks] = await generateWorld(
+  const [player, chunks] = await generateWorld(
+    app,
     worldContainer,
     rapier,
     wakeObjects
@@ -84,6 +88,13 @@ game.ready.then(async (app) => {
 
     runEventQueueCheck(eventQueue);
 
+    // reRender chunks when destructed or changed
+    // chunks.flat().flatMap((chunk: Chunk) => {
+    //   if (chunk.dirty) {
+    //     reRenderChunk(app, worldContainer, chunk);
+    //   }
+    // });
+
     // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
     wakeObjects.forEach((object) => {
       if (object.body.isFixed()) return;
@@ -92,6 +103,7 @@ game.ready.then(async (app) => {
       object.sprite.rotation = object.body.rotation();
     });
 
+    // calculateBlockCollision(player, chunks)
     camera.pos = player.body.translation();
     worldContainer.scale = camera.scale;
     worldContainer.position.set(

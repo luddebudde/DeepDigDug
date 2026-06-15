@@ -1,6 +1,7 @@
 import { perlin } from "../math/perlin";
 
 export const blockSize = 75;
+export const chunkSize = 32
 
 export const worldWidth = 150 * blockSize;
 export const worldHeight = 150 * blockSize;

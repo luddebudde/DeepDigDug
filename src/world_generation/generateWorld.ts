@@ -1,5 +1,13 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Container, Graphics } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Container,
+  Graphics,
+  RenderTexture,
+  Sprite,
+  Texture,
+} from "pixi.js";
 import { createCube } from "../createCube";
 import { Object } from "../main";
 import { materials } from "./materials";
@@ -16,7 +24,9 @@ import { Vec2 } from "../math/vec";
 import { ridges } from "./perlin_matrix/perlinRidges";
 import { log } from "console";
 import { zeros2 } from "../math/zeroes";
-import { Block, createChunk } from "../createChunk";
+import { Block, Chunk, createChunk } from "../createChunk";
+import { createSprite, getTexture } from "../pixi/createSprite";
+import { renderChunk } from "../pixi/renderChunk";
 
 type MaterialKey = keyof typeof materials;
 type TerrainEntry = [number, MaterialKey, Vec2, number, number];
@@ -55,90 +65,57 @@ const generatedTerrain = mapMat(
   .filter((entry): entry is TerrainEntry => entry[1] !== "air");
 
 export const generateWorld = async (
+  app: Application,
   worldContainer: Container,
   rapier: RAPIER.World,
   objects: Object[]
-): Promise<[Object, Object[]]> => {
-  const chunks: Block[][] = [[]];
+): Promise<[Object, Chunk[][]]> => {
+  const chunks: Chunk[][] = [[]];
 
-  const boxes = [...generatedTerrain].map(
-    ([val, materialKey, coord, column, row]) => {
-      const material = materials[materialKey];
-      // const color = material.color(val);
+  [...generatedTerrain].map(([val, materialKey, coord, column, row]) => {
+    const material = materials[materialKey];
 
-      const block: Block = {
-        material: material,
-        pos: coord,
-        row: row,
-        column: column,
-      };
+    const block: Block = {
+      material: material,
+      pos: coord,
+      row: row,
+      column: column,
+    };
 
-      // console.log("column", column, "row", row);
+    createChunk(worldContainer, rapier, chunks, block);
+  });
 
-      createChunk(worldContainer, rapier, chunks, block);
-      //   console.log(chunks);
+  console.log(chunks);
 
-      return createCube(
-        worldContainer,
-        rapier,
-        objects,
-        {
-          pos: coord,
-          width: blockSize,
-          height: blockSize,
-          density: material.density,
-          modes: {
-            static: true,
-            sleep: true,
-          },
-        },
-        { pixiUrl: material.png, zIndex: 1 }
-      );
-    }
+  // CHUNK DEBUGGING, put into forEach loop below
+  // createCube(
+  //   worldContainer,
+  //   rapier,
+  //   objects,
+  //   {
+  //     pos: {
+  //       x: columnIndex * chunkWorldSize + xWorldOffset + chunkWorldSize / 2,
+  //       y: rowIndex * chunkWorldSize + chunkWorldSize / 2,
+  //     },
+  //     width: blockSize * 32,
+  //     height: blockSize * 32,
+  //     density: 0,
+  //     modes: {
+  //       static: true,
+  //       sleep: true,
+  //       sensor: true,
+  //     },
+  //   },
+  //   { pixiUrl: "stone_texture.png", zIndex: 0 }
+  // );
+
+  const chunkPromises = chunks.flatMap((chunkColumn: Chunk[], columnIndex) =>
+    chunkColumn.map(async (chunk: Chunk, rowIndex) => {
+      renderChunk(app, worldContainer, chunk);
+    })
   );
-  const CHUNK_SIZE = 32;
-  const chunkWorldSize = CHUNK_SIZE * blockSize;
 
-  // UN-COMMENT THIS LATER, FOR DEBUGGING PURPOSES
-  // chunks.forEach((column, columnIndex) => {
-  //   column.forEach((row, rowIndex) => {
-  //     createCube(
-  //       worldContainer,
-  //       rapier,
-  //       objects,
-  //       {
-  //         pos: {
-  //           x: columnIndex * chunkWorldSize + xWorldOffset + chunkWorldSize / 2,
-  //           y: rowIndex * chunkWorldSize + chunkWorldSize / 2,
-  //         },
-  //         width: blockSize * 32,
-  //         height: blockSize * 32,
-  //         density: 0,
-  //         modes: {
-  //           static: true,
-  //           sleep: true,
-  //           sensor: true,
-  //         },
-  //       },
-  //       { pixiUrl: "stone_texture.png", zIndex: 0 }
-  //     );
-
-  // const graphics = new Graphics();
-
-  // graphics
-  //   .rect(
-  //     columnIndex * 32 * blockSize + xWorldOffset,
-  //     rowIndex * 32 * blockSize,
-  //     32 * blockSize,
-  //     32 * blockSize
-  //   )
-  //   .fill("red");
-
-  // worldContainer.addChild(graphics);
-  //   });
-  // });
-
-  const worldBlocks = await Promise.all(boxes);
+  const worldChunks: Chunk[][] = await Promise.all(chunkPromises);
 
   const player = await createCube(
     worldContainer,
@@ -157,5 +134,5 @@ export const generateWorld = async (
     { pixiUrl: "coal_texture.png", zIndex: 5 }
   );
 
-  return [player, worldBlocks];
+  return [player, chunks];
 };
