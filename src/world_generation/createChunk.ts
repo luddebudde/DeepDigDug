@@ -20,7 +20,10 @@ export type Chunk = {
   row: number;
   renderTexture: RenderTexture;
   dirty: boolean;
-  body: RAPIER.RigidBody;
+  rapier: {
+    desc: RAPIER.RigidBodyDesc;
+    body: RAPIER.RigidBody;
+  };
 };
 
 // WILL CRASH IF SPACE BETWEEN TWO CHUNKS IS A WHOLE EMPTY CHUNK
@@ -56,7 +59,10 @@ export const createChunk = (
       row: rowIndex,
       renderTexture: "" as RenderTexture,
       dirty: false,
-      body: rapierWorld.createRigidBody(bodyDesc),
+      rapier: {
+        desc: bodyDesc,
+        body: rapierWorld.createRigidBody(bodyDesc),
+      },
     };
   }
   const chosenChunk = chunks[columnIndex][rowIndex];

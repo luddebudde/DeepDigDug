@@ -9,9 +9,9 @@ import { Vec2 } from "./math/vec";
 import { log } from "node:console";
 import { calculateBlockCollision } from "./calculateBlockCollision";
 import { generateWorld } from "./world_generation/generateWorld";
-import { changeChunksInRender, reRenderChunk } from "./pixi/renderChunk";
 import { Chunk } from "./world_generation/createChunk";
 import { Object } from "./createCube";
+import { changeChunksInRender, processChunkQueue } from "./pixi/renderChunk";
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -24,7 +24,7 @@ const world = {
 };
 
 const gravity = { x: 0, y: 980.1 };
-const rapier = new RAPIER.World(gravity);
+const rapierWorld = new RAPIER.World(gravity);
 const eventQueue = new RAPIER.EventQueue(true);
 
 const rapierHook = {
@@ -62,7 +62,7 @@ game.ready.then(async (app) => {
   const [player, chunks] = await generateWorld(
     app,
     worldContainer,
-    rapier,
+    rapierWorld,
     wakeObjects
   );
 
@@ -80,7 +80,7 @@ game.ready.then(async (app) => {
   app.ticker.add((ticker) => {
     const dt = ticker.deltaMS / 1000;
     // calculateBlockCollision(player, chunks, dt);
-    rapier.step(eventQueue, rapierHook);
+    rapierWorld.step(eventQueue, rapierHook);
 
     runEventQueueCheck(eventQueue);
 
@@ -93,7 +93,8 @@ game.ready.then(async (app) => {
 
     const playerPos = player.body.translation();
 
-    changeChunksInRender(playerPos, chunks);
+    changeChunksInRender(rapierWorld, playerPos, chunks); // queue updates
+    processChunkQueue(rapierWorld);
 
     // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
     wakeObjects.forEach((object) => {

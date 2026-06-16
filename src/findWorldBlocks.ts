@@ -11,7 +11,7 @@ import {
 // Add safety measures, in case the selected "column" and "row" is undefined
 export const getWorldIndex = (
   pos: Vec2
-): [blockColumnIndex: number, blockRowIndex: number] | undefined => {
+): [blockColumnIndex: number, blockRowIndex: number] => {
   const blockColumnIndex = Math.floor((pos.x - xWorldOffset) / blockSize);
   const blockRowIndex = Math.floor(pos.y / blockSize);
 
@@ -24,10 +24,8 @@ export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk | undefined => {
 
   const column = Math.floor(blockColumnIndex / relChunkSize);
   const row = Math.floor(blockRowIndex / relChunkSize);
-  //console.log(blockColumnIndex, blockRowIndex);
-  console.log(column, row);
 
-  if (chunks[column][row] === undefined) return;
+  if (chunks[column]?.[row] === undefined) return;
 
   const foundChunk = chunks[column][row];
 
@@ -37,8 +35,8 @@ export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk | undefined => {
   return foundChunk;
 };
 
-export const findBlock = (pos: Vec2, chunks: Chunk[][]): Block => {
-  const activeChunk: Chunk = findChunk(pos, chunks);
+export const findBlock = (pos: Vec2, chunks: Chunk[][]): Block | undefined => {
+  const activeChunk: Chunk | undefined = findChunk(pos, chunks);
   const [worldColumnIndex, worldRowIndex] = getWorldIndex(pos);
 
   const localColumn =
@@ -57,15 +55,15 @@ export const findBorderingChunks = (
   pos: Vec2,
   chunks: Chunk[][],
   range: number
-): Chunk[][] => {
+): (Chunk | undefined)[][] => {
   const gridSize = range * 2 + 1;
 
-  zeros2(gridSize, gridSize).map((column, columnIndex) =>
+  return zeros2(gridSize, gridSize).map((column, columnIndex) =>
     column.map((row, rowIndex) =>
       findChunk(
         {
-          x: pos.x + chunkSize * columnIndex - columnIndex,
-          y: pos.y + chunkSize * rowIndex - rowIndex,
+          x: pos.x + chunkSize * columnIndex - columnIndex * (range - 1),
+          y: pos.y + chunkSize * rowIndex - rowIndex * (range - 1),
         },
         chunks
       )
