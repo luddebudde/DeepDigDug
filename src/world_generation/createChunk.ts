@@ -1,9 +1,9 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Container, RenderTexture } from "pixi.js";
+import { Container, RenderTexture, Sprite, Texture } from "pixi.js";
 import { Material } from "./materials";
 import { Vec2 } from "../math/vec";
 import { chunkRelSize, chunkSize } from "./perlinConstants";
-import { zeros2 } from "../math/zeroes";
+import { getIndexFromGrid } from "../findWorldBlocks";
 
 export type Block = {
   material: Material;
@@ -15,14 +15,15 @@ export type Block = {
 };
 
 export type Chunk = {
-  blocks: Block[][];
+  blocks: Block[];
   column: number;
   row: number;
-  renderTexture: RenderTexture;
+  renderTexture?: RenderTexture;
+  sprite?: Sprite;
   dirty: boolean;
   rapier: {
     desc: RAPIER.RigidBodyDesc;
-    body: RAPIER.RigidBody;
+    body?: RAPIER.RigidBody;
   };
 };
 
@@ -54,14 +55,15 @@ export const createChunk = (
       rowIndex * chunkSize + chunkSize / 2
     );
     chunks[columnIndex][rowIndex] = {
-      blocks: [[]] as Block[][],
+      blocks: new Array<Block>(chunkRelSize * chunkRelSize),
       column: columnIndex,
       row: rowIndex,
-      renderTexture: "" as RenderTexture,
+      renderTexture: undefined,
+      sprite: undefined,
       dirty: false,
       rapier: {
         desc: bodyDesc,
-        body: rapierWorld.createRigidBody(bodyDesc),
+        body: undefined,
       },
     };
   }
@@ -70,19 +72,10 @@ export const createChunk = (
 };
 
 const pushBlockToChunk = (block: Block, chunk: Chunk) => {
-  // MIGHT ACCIDENTALLY GIVE WRONG CHUNK
-  const columnIndex = block.column % 32;
-  const rowIndex = block.row % 32;
+  const localColumn =
+    ((block.column % chunkRelSize) + chunkRelSize) % chunkRelSize;
+  const localRow = ((block.row % chunkRelSize) + chunkRelSize) % chunkRelSize;
 
-  const blocks = chunk.blocks;
-
-  if (blocks[columnIndex] === undefined) {
-    blocks[columnIndex] = [];
-  }
-
-  if (blocks[columnIndex][rowIndex] === undefined) {
-    blocks[columnIndex][rowIndex] = {} as Block;
-  }
-
-  blocks[columnIndex][rowIndex] = block;
+  const idx = getIndexFromGrid(localColumn, localRow);
+  chunk.blocks[idx] = block;
 };

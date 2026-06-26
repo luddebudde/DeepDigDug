@@ -94,7 +94,7 @@ game.ready.then(async (app) => {
     const playerPos = player.body.translation();
 
     changeChunksInRender(rapierWorld, playerPos, chunks); // queue updates
-    processChunkQueue(rapierWorld);
+    processChunkQueue(rapierWorld, app, worldContainer);
 
     // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
     wakeObjects.forEach((object) => {

@@ -6,10 +6,11 @@ import {
   chunkRelSize as relChunkSize,
   chunkSize,
   xWorldOffset,
+  chunkRelSize,
 } from "./world_generation/perlinConstants";
 
 // Add safety measures, in case the selected "column" and "row" is undefined
-export const getWorldIndex = (
+export const getWorldGrid = (
   pos: Vec2
 ): [blockColumnIndex: number, blockRowIndex: number] => {
   const blockColumnIndex = Math.floor((pos.x - xWorldOffset) / blockSize);
@@ -20,7 +21,7 @@ export const getWorldIndex = (
 
 // Add safety measures, in case the selected "column" and "row" is undefined
 export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk | undefined => {
-  const [blockColumnIndex, blockRowIndex] = getWorldIndex(pos);
+  const [blockColumnIndex, blockRowIndex] = getWorldGrid(pos);
 
   const column = Math.floor(blockColumnIndex / relChunkSize);
   const row = Math.floor(blockRowIndex / relChunkSize);
@@ -37,7 +38,7 @@ export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk | undefined => {
 
 export const findBlock = (pos: Vec2, chunks: Chunk[][]): Block | undefined => {
   const activeChunk: Chunk | undefined = findChunk(pos, chunks);
-  const [worldColumnIndex, worldRowIndex] = getWorldIndex(pos);
+  const [worldColumnIndex, worldRowIndex] = getWorldGrid(pos);
 
   const localColumn =
     ((worldColumnIndex % relChunkSize) + relChunkSize) % relChunkSize;
@@ -46,7 +47,8 @@ export const findBlock = (pos: Vec2, chunks: Chunk[][]): Block | undefined => {
 
   if (activeChunk === undefined) return;
 
-  const foundBlock = activeChunk.blocks[localColumn][localRow];
+  const foundBlock =
+    activeChunk.blocks[getIndexFromGrid(localColumn, localRow)];
 
   return foundBlock;
 };
@@ -62,8 +64,8 @@ export const findBorderingChunks = (
     column.map((row, rowIndex) =>
       findChunk(
         {
-          x: pos.x + chunkSize * columnIndex - columnIndex * (range - 1),
-          y: pos.y + chunkSize * rowIndex - rowIndex * (range - 1),
+          x: pos.x + (columnIndex - range) * chunkSize,
+          y: pos.y + (rowIndex - range) * chunkSize,
         },
         chunks
       )
@@ -77,15 +79,25 @@ export const findBorderingBlocks = (
   range: number
 ) => {
   const gridSize = range * 2 + 1;
-  return zeros2(gridSize, gridSize).map((column, columnIndex) =>
-    column.map((row, rowIndex) =>
-      findBlock(
-        {
-          x: pos.x + blockSize * columnIndex - columnIndex,
-          y: pos.y + blockSize * rowIndex - rowIndex,
-        },
-        chunks
-      )
-    )
-  );
+  return zeros2(gridSize, gridSize).map((block, idx) => {
+    const [row, column] = idxToGrid(idx);
+    return findBlock(
+      {
+        x: pos.x + (column - range) * blockSize,
+        y: pos.y + (row - range) * blockSize,
+      },
+      chunks
+    );
+  });
+};
+
+export const getIndexFromGrid = (column: number, row: number): number => {
+  return row * chunkRelSize + column;
+};
+
+export const idxToGrid = (index: number): [row: number, column: number] => {
+  const row = Math.floor(index / chunkRelSize);
+  const col = index % chunkRelSize;
+
+  return [row, col];
 };
