@@ -4,10 +4,10 @@ export const blockSize = 75;
 export const chunkRelSize = 32;
 export const chunkSize = chunkRelSize * blockSize;
 
-export const worldWidth = 150 * blockSize;
-export const worldHeight = 150 * blockSize;
-// export const worldWidth = 300 * blockSize;
-// export const worldHeight = 300 * blockSize;
+// export const worldWidth = 150 * blockSize;
+// export const worldHeight = 150 * blockSize;
+export const worldWidth = 800 * blockSize;
+export const worldHeight = 500 * blockSize;
 const hvRatio = 1 / 2;
 export const horizontalBoxes = worldWidth / blockSize;
 const verticalBoxes = worldHeight / blockSize;

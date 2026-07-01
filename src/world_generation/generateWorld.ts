@@ -38,8 +38,6 @@ const sprites = [
   "diamond_ore.png",
 ];
 
-
-
 const terrainType = Math.random() > 0.5 ? "cave" : "cave";
 const terrainWithoutGrass = terrainType === "cave" ? caves() : ridges();
 
@@ -110,16 +108,12 @@ export const generateWorld = async (
   //   { pixiUrl: "stone_texture.png", zIndex: 0 }
   // );
 
-
-
-  const chunkPromises = chunks.flatMap((chunkColumn: Chunk[], columnIndex) =>
-    chunkColumn.map((chunk: Chunk, rowIndex) =>
-      renderChunk(app, worldContainer, chunk)
-    )
-  );
-
-  await Promise.all(chunkPromises);
-  //const worldChunks: Chunk[][] = await Promise.all(chunkPromises);
+  // const chunkPromises = chunks.flatMap((chunkColumn: Chunk[], columnIndex) =>
+  //   chunkColumn.map((chunk: Chunk, rowIndex) =>
+  //     renderChunk(app, worldContainer, chunk)
+  //   )
+  // );
+  // await Promise.all(chunkPromises);
 
   const player = await createCube(
     worldContainer,

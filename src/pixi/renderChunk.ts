@@ -20,6 +20,17 @@ import { createVec, cubify, Vec2 } from "../math/vec";
 import { createBody } from "../rapier/createBody";
 import RAPIER from "@dimforge/rapier2d";
 
+type Assets = Record<string, Texture>;
+
+const assets: Assets = {
+  air: await Assets.load(""),
+  rock: await Assets.load("stone_texture.png"),
+  earth: await Assets.load("dirt_texture.png"),
+  grass: await Assets.load("ladder_sprite.png"),
+  snow: await Assets.load("diamond_ore.png"),
+  ice: await Assets.load("silver_ore.png"),
+};
+
 export const reRenderChunk = (
   app: Application,
   worldContainer: Container,
@@ -32,8 +43,7 @@ export const reRenderChunk = (
 export const renderChunk = async (
   app: Application,
   worldContainer: Container,
-  chunk: Chunk,
-  assets
+  chunk: Chunk
 ) => {
   const chunkContainer = new Container();
   chunkContainer.cacheAsTexture(true);
@@ -44,21 +54,17 @@ export const renderChunk = async (
     .flat()
     .filter((block): block is Block => block !== undefined)
     .map((block: Block) => {
-      //const texture: Texture = await Assets.load(block.material.png);
       const texture = assets[block.materialKey];
-
       const sprite = createSprite(
         { width: blockSize, height: blockSize },
         texture,
         1
       );
-
       sprite.x =
         block.pos.x -
         (chunk.column * trueChunkSize + xWorldOffset) +
         blockSize / 2;
       sprite.y = block.pos.y - chunk.row * trueChunkSize + blockSize / 2;
-
       return sprite;
     });
 
@@ -79,6 +85,10 @@ export const renderChunk = async (
   chunkSprite.y = chunk.row * trueChunkSize - blockSize / 2;
 
   worldContainer.addChild(chunkSprite);
+
+  // ✅ Store reference so we can remove it later
+  chunk.sprite = chunkSprite;
+
   chunkContainer.destroy({ children: true });
 };
 
@@ -151,20 +161,36 @@ let isProcessing = false;
 
 const CHUNKS_PER_FRAME = 1; // tune this — 1-2 is smooth, higher = faster load but more stutter
 
-export const processChunkQueue = (rapierWorld: RAPIER.World) => {
-  // Remove first — frees memory before allocating
+export const processChunkQueue = (
+  rapierWorld: RAPIER.World,
+  app: Application,
+  worldContainer: Container
+) => {
   for (let i = 0; i < CHUNKS_PER_FRAME && chunksToRemove.length > 0; i++) {
     const chunk = chunksToRemove.shift()!;
+
+    // ✅ Just hide it, don't destroy
+    if (chunk.sprite) {
+      chunk.sprite.visible = false;
+    }
+
     if (chunk.rapier.body) {
       rapierWorld.removeRigidBody(chunk.rapier.body);
       chunk.rapier.body = undefined;
     }
   }
 
-  // Then add
   for (let i = 0; i < CHUNKS_PER_FRAME && chunksToAdd.length > 0; i++) {
     const chunk = chunksToAdd.shift()!;
     addChunkToPhysics(rapierWorld, chunk);
+
+    if (chunk.sprite) {
+      // ✅ Already rendered before, just show it again
+      chunk.sprite.visible = true;
+    } else {
+      // ✅ First time seeing this chunk, render it
+      renderChunk(app, worldContainer, chunk);
+    }
   }
 };
 
@@ -174,7 +200,7 @@ export const changeChunksInRender = (
   playerPos: Vec2,
   chunks: Chunk[][]
 ) => {
-  const range = 2; // 2 = 5x5 area centered on player, tune down to 1 for 3x3
+  const range = 3; // 2 = 5x5 area centered on player, tune down to 1 for 3x3
 
   const currentRenderedChunks: Chunk[] = findBorderingChunks(
     playerPos,
@@ -219,35 +245,35 @@ const addChunkToPhysics = (rapierWorld: RAPIER.World, chunk: Chunk) => {
     rapierWorld.createCollider(colliderDesc, body);
   });
 };
-
-// Greedy merge — combines adjacent solid blocks into large rectangles
-// Reduces 256 colliders down to potentially < 10
 const greedyMergeBlocks = (
   chunk: Chunk
 ): { x: number; y: number; w: number; h: number }[] => {
-  const cols = chunk.blocks.length; // first index is column
-  const rows = chunk.blocks[0].length; // second index is row
+  const cols = chunkRelSize;
+  const rows = chunkRelSize;
 
-  const remaining: boolean[][] = chunk.blocks.map((col) =>
-    col.map((block) => block?.material?.solid ?? false)
+  const remaining: boolean[] = chunk.blocks.map(
+    (block) => block?.material?.solid ?? false
   );
+
+  const getIdx = (col: number, row: number) => row * cols + col;
 
   const rects: { x: number; y: number; w: number; h: number }[] = [];
 
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      if (!remaining[col][row]) continue;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (!remaining[getIdx(col, row)]) continue;
 
       // Expand down (increasing row) as far as possible
       let height = 1;
-      while (row + height < rows && remaining[col][row + height]) height++;
+      while (row + height < rows && remaining[getIdx(col, row + height)])
+        height++;
 
       // Expand right (increasing col) while all rows in height are solid
       let width = 1;
       while (col + width < cols) {
         const colSolid = Array.from(
           { length: height },
-          (_, i) => remaining[col + width][row + i]
+          (_, i) => remaining[getIdx(col + width, row + i)]
         ).every(Boolean);
         if (!colSolid) break;
         width++;
@@ -255,10 +281,10 @@ const greedyMergeBlocks = (
 
       // Mark consumed
       for (let c = col; c < col + width; c++)
-        for (let r = row; r < row + height; r++) remaining[c][r] = false;
+        for (let r = row; r < row + height; r++)
+          remaining[getIdx(c, r)] = false;
 
-      // Use block.pos directly — it's already in world pixel coordinates
-      const block = chunk.blocks[col][row];
+      const block = chunk.blocks[getIdx(col, row)];
       rects.push({
         x: block.pos.x,
         y: block.pos.y,
