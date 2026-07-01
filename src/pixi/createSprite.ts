@@ -13,20 +13,20 @@ export const getTexture = async (path: string): Promise<Texture> => {
 
 export const createSprite = (
   dimensions: { width: number; height: number },
-  texture: Texture | undefined,
+  texture: Texture,
   priorityIndex?: number
-): Sprite | Graphics => {
-  if (texture == null) {
-    const graphics = new Graphics().rect(
-      -dimensions.width / 2,
-      -dimensions.height / 2,
-      dimensions.width,
-      dimensions.height
-    );
-    graphics.cullable = true;
-    //  const alpha = physics.sensorMode ? 0.5 : 1;
-    return graphics;
-  }
+): Sprite => {
+  // if (texture == null) {
+  //   const graphics = new Graphics().rect(
+  //     -dimensions.width / 2,
+  //     -dimensions.height / 2,
+  //     dimensions.width,
+  //     dimensions.height
+  //   );
+  //   graphics.cullable = true;
+  //   //  const alpha = physics.sensorMode ? 0.5 : 1;
+  //   return undefined;
+  // }
 
   const sprite = new Sprite(texture);
   sprite.anchor.set(0.5);

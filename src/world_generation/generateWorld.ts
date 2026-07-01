@@ -8,9 +8,8 @@ import {
   Sprite,
   Texture,
 } from "pixi.js";
-import { createCube } from "../createCube";
-import { Object } from "../main";
-import { materials } from "./materials";
+import { createCube, Object } from "../createCube";
+import { getMaterialId, materials } from "./materials";
 import { mapMat } from "../math/matrix";
 import { caves } from "./perlin_matrix/perlinCaves";
 import {
@@ -71,17 +70,17 @@ export const generateWorld = async (
   const chunks: Chunk[][] = [[]];
 
   [...generatedTerrain].map(([val, materialKey, coord, column, row]) => {
-    const material = materials[materialKey];
+    // console.log(materialKey, getMaterialId(materialKey));
 
-    const block: Block = {
-      material: material,
-      materialKey: materialKey,
-      pos: coord,
-      row: row,
-      column: column,
-    };
+    const materialId = getMaterialId(materialKey);
 
-    createChunk(worldContainer, rapier, chunks, block);
+    createChunk(
+      worldContainer,
+      rapier,
+      chunks,
+      { row: row, column: column },
+      materialId
+    );
   });
 
   console.log(chunks);

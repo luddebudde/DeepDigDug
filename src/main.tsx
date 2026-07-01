@@ -5,9 +5,6 @@ import { Container, Graphics, Sprite } from "pixi.js";
 import RAPIER from "@dimforge/rapier2d";
 import { keys, setupKeyboardListeners } from "./keyListner";
 import { runEventQueueCheck } from "./rapier/eventQueueHandler";
-import { Vec2 } from "./math/vec";
-import { log } from "node:console";
-import { calculateBlockCollision } from "./calculateBlockCollision";
 import { generateWorld } from "./world_generation/generateWorld";
 import { Chunk } from "./world_generation/createChunk";
 import { Object } from "./createCube";
@@ -152,3 +149,4 @@ export const setupMouseWheel = () => {
     mouseWheel = Math.sign(e.deltaY);
   });
 };
+

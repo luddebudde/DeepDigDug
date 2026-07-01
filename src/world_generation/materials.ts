@@ -65,3 +65,24 @@ export const materials: Record<string, Material> = {
     png: "pickaxe_sprite.png",
   },
 } as const;
+
+export const materialKeys = Object.keys(materials) as (keyof typeof materials)[];
+const materialIdMap = new Map<string, number>(
+  materialKeys.map((key, index) => [key, index])
+);
+
+export const getMaterialId = (key: keyof typeof materials): number => {
+  const id = materialIdMap.get(key);
+  if (id === undefined) {
+    throw new Error(`Unknown material key: ${key}`);
+  }
+  return id;
+};
+
+export const getMaterial = (id: number): Material => {
+  const key = materialKeys[id];
+  if (key === undefined) {
+    throw new Error(`Unknown material id: ${id}`);
+  }
+  return materials[key];
+};

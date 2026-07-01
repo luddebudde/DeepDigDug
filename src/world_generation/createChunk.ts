@@ -4,6 +4,7 @@ import { Material } from "./materials";
 import { Vec2 } from "../math/vec";
 import { chunkRelSize, chunkSize } from "./perlinConstants";
 import { getIndexFromGrid } from "../findWorldBlocks";
+import { Dimensions } from "../createCube";
 
 export type Block = {
   material: Material;
@@ -15,7 +16,7 @@ export type Block = {
 };
 
 export type Chunk = {
-  blocks: Block[];
+  blocks: Uint8Array;
   column: number;
   row: number;
   renderTexture?: RenderTexture;
@@ -27,15 +28,18 @@ export type Chunk = {
   };
 };
 
+export type Mesh = { row: number; column: number };
+
 // WILL CRASH IF SPACE BETWEEN TWO CHUNKS IS A WHOLE EMPTY CHUNK
 export const createChunk = (
   worldContainer: Container,
   rapierWorld: RAPIER.World,
   chunks: Chunk[][],
-  block: Block
+  mesh: Mesh,
+  materialId: number
 ) => {
-  const column = block.column;
-  const row = block.row;
+  const column = mesh.column;
+  const row = mesh.row;
 
   // X-pos
   const columnIndex = Math.floor(column / chunkRelSize);
@@ -55,7 +59,7 @@ export const createChunk = (
       rowIndex * chunkSize + chunkSize / 2
     );
     chunks[columnIndex][rowIndex] = {
-      blocks: new Array<Block>(chunkRelSize * chunkRelSize),
+      blocks: new Uint8Array(chunkRelSize * chunkRelSize),
       column: columnIndex,
       row: rowIndex,
       renderTexture: undefined,
@@ -68,14 +72,18 @@ export const createChunk = (
     };
   }
   const chosenChunk = chunks[columnIndex][rowIndex];
-  pushBlockToChunk(block, chosenChunk);
+  pushBlockToChunk(mesh, chosenChunk, materialId);
 };
 
-const pushBlockToChunk = (block: Block, chunk: Chunk) => {
+const pushBlockToChunk = (mesh: Mesh, chunk: Chunk, materialId: number) => {
   const localColumn =
-    ((block.column % chunkRelSize) + chunkRelSize) % chunkRelSize;
-  const localRow = ((block.row % chunkRelSize) + chunkRelSize) % chunkRelSize;
+    ((mesh.column % chunkRelSize) + chunkRelSize) % chunkRelSize;
+  const localRow = ((mesh.row % chunkRelSize) + chunkRelSize) % chunkRelSize;
+
+  // if (materialId !== 0) {
+  //   console.log(materialId);
+  // }
 
   const idx = getIndexFromGrid(localColumn, localRow);
-  chunk.blocks[idx] = block;
+  chunk.blocks[idx] = materialId;
 };

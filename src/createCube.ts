@@ -1,5 +1,12 @@
 import RAPIER, { PhysicsPipeline } from "@dimforge/rapier2d";
-import { Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
+import {
+  Assets,
+  Container,
+  Graphics,
+  Rectangle,
+  Sprite,
+  Texture,
+} from "pixi.js";
 import { Vec2 } from "./math/vec";
 
 import { createBody } from "./rapier/createBody";
@@ -68,11 +75,13 @@ export const createCube = async (
   const texture: Texture | undefined = pixi?.pixiUrl
     ? await Assets.load(pixi.pixiUrl)
     : undefined;
-  const sprite: Sprite | Graphics = createSprite(
-    dimensions,
-    texture,
-    pixi?.zIndex
-  );
+
+  if (texture === undefined) {
+    console.log("TEXTURE IS NOT DEFINED!!!!!");
+
+    return {} as Rectangle;
+  }
+  const sprite: Sprite = createSprite(dimensions, texture, pixi?.zIndex);
 
   // Create object
   const rectangle: Object = {

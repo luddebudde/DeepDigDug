@@ -36,22 +36,22 @@ export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk | undefined => {
   return foundChunk;
 };
 
-export const findBlock = (pos: Vec2, chunks: Chunk[][]): Block | undefined => {
-  const activeChunk: Chunk | undefined = findChunk(pos, chunks);
-  const [worldColumnIndex, worldRowIndex] = getWorldGrid(pos);
+// export const findBlock = (pos: Vec2, chunks: Chunk[][]): Block | undefined => {
+//   const activeChunk: Chunk | undefined = findChunk(pos, chunks);
+//   const [worldColumnIndex, worldRowIndex] = getWorldGrid(pos);
 
-  const localColumn =
-    ((worldColumnIndex % relChunkSize) + relChunkSize) % relChunkSize;
-  const localRow =
-    ((worldRowIndex % relChunkSize) + relChunkSize) % relChunkSize;
+//   const localColumn =
+//     ((worldColumnIndex % relChunkSize) + relChunkSize) % relChunkSize;
+//   const localRow =
+//     ((worldRowIndex % relChunkSize) + relChunkSize) % relChunkSize;
 
-  if (activeChunk === undefined) return;
+//   if (activeChunk === undefined) return;
 
-  const foundBlock =
-    activeChunk.blocks[getIndexFromGrid(localColumn, localRow)];
+//   const foundBlock =
+//     activeChunk.blocks[getIndexFromGrid(localColumn, localRow)];
 
-  return foundBlock;
-};
+//   return foundBlock;
+// };
 
 export const findBorderingChunks = (
   pos: Vec2,
@@ -73,23 +73,23 @@ export const findBorderingChunks = (
   );
 };
 
-export const findBorderingBlocks = (
-  pos: Vec2,
-  chunks: Chunk[][],
-  range: number
-) => {
-  const gridSize = range * 2 + 1;
-  return zeros2(gridSize, gridSize).map((block, idx) => {
-    const [row, column] = idxToGrid(idx);
-    return findBlock(
-      {
-        x: pos.x + (column - range) * blockSize,
-        y: pos.y + (row - range) * blockSize,
-      },
-      chunks
-    );
-  });
-};
+// export const findBorderingBlocks = (
+//   pos: Vec2,
+//   chunks: Chunk[][],
+//   range: number
+// ) => {
+//   const gridSize = range * 2 + 1;
+//   return zeros2(gridSize, gridSize).map((block, idx) => {
+//     const [row, column] = idxToGrid(idx);
+//     return findBlock(
+//       {
+//         x: pos.x + (column - range) * blockSize,
+//         y: pos.y + (row - range) * blockSize,
+//       },
+//       chunks
+//     );
+//   });
+// };
 
 export const getIndexFromGrid = (column: number, row: number): number => {
   return row * chunkRelSize + column;
