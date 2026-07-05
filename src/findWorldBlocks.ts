@@ -1,5 +1,5 @@
-import { Block, Chunk } from "./world_generation/createChunk";
-import { Vec2 } from "./math/vec";
+import { Chunk } from "./world_generation/createChunk";
+import { origo, Vec2 } from "./math/vec";
 import { zeros2 } from "./math/zeroes";
 import {
   blockSize,
@@ -8,13 +8,19 @@ import {
   xWorldOffset,
   chunkRelSize,
 } from "./world_generation/perlinConstants";
+import { getMaterial, getMaterialId } from "./world_generation/materials";
+
+export type Integer = number;
 
 // Add safety measures, in case the selected "column" and "row" is undefined
 export const getWorldGrid = (
   pos: Vec2
 ): [blockColumnIndex: number, blockRowIndex: number] => {
-  const blockColumnIndex = Math.floor((pos.x - xWorldOffset) / blockSize);
-  const blockRowIndex = Math.floor(pos.y / blockSize);
+  const blockWidth = blockSize / 2;
+  const blockColumnIndex = Math.floor(
+    (pos.x + blockWidth - xWorldOffset) / blockSize
+  );
+  const blockRowIndex = Math.floor((pos.y + blockWidth) / blockSize);
 
   return [blockColumnIndex, blockRowIndex];
 };
@@ -34,6 +40,22 @@ export const findChunk = (pos: Vec2, chunks: Chunk[][]): Chunk | undefined => {
   if (!foundChunk) throw "error: couldn't find chunk";
 
   return foundChunk;
+};
+
+export const findBlock = (
+  pos: Vec2,
+  chunk: Chunk
+): [idx: number, materialInt: Integer] => {
+  // Universal grid
+  const [universalColumn, universalRow] = getWorldGrid(pos);
+
+  // Relative grid
+  const relColumn = universalColumn % chunkRelSize;
+  const relRow = universalRow % chunkRelSize;
+
+  const idx = gridToIdx(relColumn, relRow);
+
+  return [idx, chunk.blocks[idx]];
 };
 
 // export const findBlock = (pos: Vec2, chunks: Chunk[][]): Block | undefined => {
@@ -73,31 +95,44 @@ export const findBorderingChunks = (
   );
 };
 
-// export const findBorderingBlocks = (
-//   pos: Vec2,
-//   chunks: Chunk[][],
-//   range: number
-// ) => {
-//   const gridSize = range * 2 + 1;
-//   return zeros2(gridSize, gridSize).map((block, idx) => {
-//     const [row, column] = idxToGrid(idx);
-//     return findBlock(
-//       {
-//         x: pos.x + (column - range) * blockSize,
-//         y: pos.y + (row - range) * blockSize,
-//       },
-//       chunks
-//     );
-//   });
-// };
+// Remake to use idx instead of whatever this bullshit is
+export const findBorderingBlocks = (
+  pos: Vec2,
+  chunks: Chunk[][],
+  range: number
+): ([idx: number, materialInt: Integer] | undefined)[][] => {
+  const gridSize = range * 2 + 1;
 
-export const getIndexFromGrid = (column: number, row: number): number => {
+  return zeros2(gridSize, gridSize).map((column, columnIndex) =>
+    column.map((_, rowIndex) => {
+      const offsetPos: Vec2 = {
+        x: pos.x + (columnIndex - range) * blockSize,
+        y: pos.y + (rowIndex - range) * blockSize,
+      };
+      const chunk = findChunk(offsetPos, chunks);
+      if (!chunk) return undefined;
+      return findBlock(offsetPos, chunk);
+    })
+  );
+};
+
+export const gridToIdx = (column: number, row: number): number => {
+  // WANTS INFORMATION WITHIN THE CHUNK
   return row * chunkRelSize + column;
 };
 
 export const idxToGrid = (index: number): [row: number, column: number] => {
+  // WANTS BLOCK'S INDEX IN THE CHUNK
   const row = Math.floor(index / chunkRelSize);
   const col = index % chunkRelSize;
 
   return [row, col];
+};
+
+export const changeBlock = (
+  blocks: Uint8Array,
+  targetIdx: number,
+  material: string
+) => {
+  blocks[targetIdx] = getMaterialId(material);
 };

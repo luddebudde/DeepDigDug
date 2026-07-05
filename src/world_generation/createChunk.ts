@@ -3,20 +3,18 @@ import { Container, RenderTexture, Sprite, Texture } from "pixi.js";
 import { Material } from "./materials";
 import { Vec2 } from "../math/vec";
 import { chunkRelSize, chunkSize } from "./perlinConstants";
-import { getIndexFromGrid } from "../findWorldBlocks";
-import { Dimensions } from "../createCube";
+import { gridToIdx, Integer } from "../findWorldBlocks";
 
-export type Block = {
-  material: Material;
-  pos: Vec2;
-  column: number;
-  row: number;
-  materialKey: string;
-  collider: RAPIER.Collider | undefined;
+export type DamagedBlock = {
+  idx: number;
+  materialInt: Integer;
+  durability: number;
 };
 
 export type Chunk = {
   blocks: Uint8Array;
+  damagedBlocks: DamagedBlock[];
+  renderdChange: boolean;
   column: number;
   row: number;
   renderTexture?: RenderTexture;
@@ -60,6 +58,8 @@ export const createChunk = (
     );
     chunks[columnIndex][rowIndex] = {
       blocks: new Uint8Array(chunkRelSize * chunkRelSize),
+      damagedBlocks: [],
+      renderdChange: false,
       column: columnIndex,
       row: rowIndex,
       renderTexture: undefined,
@@ -84,6 +84,6 @@ const pushBlockToChunk = (mesh: Mesh, chunk: Chunk, materialId: number) => {
   //   console.log(materialId);
   // }
 
-  const idx = getIndexFromGrid(localColumn, localRow);
+  const idx = gridToIdx(localColumn, localRow);
   chunk.blocks[idx] = materialId;
 };

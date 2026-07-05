@@ -7,7 +7,7 @@ import {
   Texture,
   TEXTURE_FORMAT_BLOCK_SIZE,
 } from "pixi.js";
-import { Block, Chunk } from "../world_generation/createChunk";
+import { Chunk } from "../world_generation/createChunk";
 import {
   blockSize,
   chunkRelSize,
@@ -32,6 +32,15 @@ const assets: Assets = {
   snow: await Assets.load("diamond_ore.png"),
   ice: await Assets.load("silver_ore.png"),
   rubber: await Assets.load("pickaxe_sprite.png"),
+};
+
+export type Camera = {
+  // Center
+  pos: Vec2;
+  // Zoom
+  scale: number;
+  orgWidth: number;
+  orgHeight: number;
 };
 
 export const reRenderChunk = (
@@ -220,12 +229,9 @@ export const processChunkQueue = (
 };
 
 // 2. DEDUPLICATE — don't rebuild chunks that are already loaded
-export const changeChunksInRender = (
-  rapierWorld: RAPIER.World,
-  playerPos: Vec2,
-  chunks: Chunk[][]
-) => {
-  const range = 3; // 2 = 5x5 area centered on player, tune down to 1 for 3x3
+export const changeChunksInRender = (playerPos: Vec2, chunks: Chunk[][]) => {
+  // Standard: 3
+  const range = 3;
 
   const currentRenderedChunks: Chunk[] = findBorderingChunks(
     playerPos,
@@ -236,25 +242,37 @@ export const changeChunksInRender = (
     .filter((chunk): chunk is Chunk => chunk !== undefined);
 
   // Queue removals (chunks that were rendered but no longer should be)
-  const removed = chunksInRender.filter(
+  const unRenderdChunks = chunksInRender.filter(
     (c) => !currentRenderedChunks.includes(c)
   );
-  chunksToRemove.push(...removed.filter((c) => !chunksToRemove.includes(c)));
+  chunksToRemove.push(
+    ...unRenderdChunks.filter((c) => !chunksToRemove.includes(c))
+  );
 
   // Queue additions (only truly new chunks — not already loaded or queued)
   const added = currentRenderedChunks.filter(
-    (c) => !chunksInRender.includes(c) && !chunksToAdd.includes(c)
+    (chunk) => !chunksInRender.includes(chunk) && !chunksToAdd.includes(chunk)
   );
+
+  currentRenderedChunks.map((chunk: Chunk) => {
+    if (chunk.renderdChange === true) {
+      added.push(chunk);
+      chunk.renderdChange = false;
+    }
+  });
+
   chunksToAdd.push(...added);
 
   chunksInRender = currentRenderedChunks;
 };
 
 // 3. EXTRACT the physics creation so it's reusable and clean
-
 const addChunkToPhysics = (rapierWorld: RAPIER.World, chunk: Chunk) => {
-  // Guard: don't create a second body if one already exists
-  if (chunk.rapier.body) return;
+  // Remove stale body (e.g. after a block was mined) to avoid leaked colliders
+  if (chunk.rapier.body) {
+    rapierWorld.removeRigidBody(chunk.rapier.body);
+    chunk.rapier.body = undefined;
+  }
 
   const body = rapierWorld.createRigidBody(RAPIER.RigidBodyDesc.fixed());
   chunk.rapier.body = body;

@@ -1,31 +1,13 @@
 import RAPIER from "@dimforge/rapier2d";
-import {
-  Application,
-  Assets,
-  Container,
-  Graphics,
-  RenderTexture,
-  Sprite,
-  Texture,
-} from "pixi.js";
+import { Application, Container } from "pixi.js";
 import { createCube, Object } from "../createCube";
 import { getMaterialId, materials } from "./materials";
 import { mapMat } from "../math/matrix";
 import { caves } from "./perlin_matrix/perlinCaves";
-import {
-  blockSize,
-  isWinter,
-  worldHeight,
-  worldWidth,
-  xWorldOffset,
-} from "./perlinConstants";
+import { isWinter } from "./perlinConstants";
 import { Vec2 } from "../math/vec";
 import { ridges } from "./perlin_matrix/perlinRidges";
-import { log } from "console";
-import { zeros2 } from "../math/zeroes";
-import { Block, Chunk, createChunk } from "./createChunk";
-import { createSprite, getTexture } from "../pixi/createSprite";
-import { renderChunk } from "../pixi/renderChunk";
+import { Chunk, createChunk } from "./createChunk";
 
 type MaterialKey = keyof typeof materials;
 type TerrainEntry = [number, MaterialKey, Vec2, number, number];
@@ -118,6 +100,7 @@ export const generateWorld = async (
     worldContainer,
     rapier,
     objects,
+    "player",
     {
       pos: { x: 0, y: 0 },
       width: 50,

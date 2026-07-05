@@ -3,21 +3,47 @@ import { ScreenHandler } from "./ScreenHandler";
 import { game } from "./Game";
 import { Container, Graphics, Sprite } from "pixi.js";
 import RAPIER from "@dimforge/rapier2d";
-import { keys, setupKeyboardListeners } from "./keyListner";
+import {
+  changeMouseWorldPos,
+  keys,
+  mouseButtons,
+  mousePos,
+  mouseWorldPos,
+  setupKeyboardListeners,
+  setupMouseListeners,
+} from "./keyListner";
 import { runEventQueueCheck } from "./rapier/eventQueueHandler";
 import { generateWorld } from "./world_generation/generateWorld";
 import { Chunk } from "./world_generation/createChunk";
-import { Object } from "./createCube";
-import { changeChunksInRender, processChunkQueue } from "./pixi/renderChunk";
+import { Dimensions, Object } from "./createCube";
+import {
+  Camera,
+  changeChunksInRender,
+  processChunkQueue,
+} from "./pixi/renderChunk";
+import {
+  changeBlock,
+  findBlock,
+  findBorderingBlocks,
+  findChunk,
+  Integer,
+} from "./findWorldBlocks";
+import { getMaterial } from "./world_generation/materials";
+import { origo } from "./math/vec";
+import { mineBlock } from "./mineBlock";
+import { playerStats } from "./inventory/playerStats";
+import { cooldownPerSecond, updateCooldown } from "./inventory/updateCooldown";
+import { invenstory } from "./inventory/inventory";
+import { move } from "./move";
 
 // Refactor segments of code to seperate files
 // Clear up some code
 // More functions (arrow up)
 
 // Create first elements
-const world = {
+const screenSize: Dimensions = {
   width: screen.width,
-  heigth: screen.height,
+  height: screen.height,
 };
 
 const gravity = { x: 0, y: 980.1 };
@@ -63,19 +89,24 @@ game.ready.then(async (app) => {
     wakeObjects
   );
 
-  const camera = {
+  const camera: Camera = {
     // Center
     pos: { x: 0, y: 0 },
     // Zoom
     scale: 0.5,
     //scale: 0.1,
+    orgWidth: 0,
+    orgHeight: 0,
   };
 
   setupKeyboardListeners();
+  setupMouseListeners();
 
+  let fps = 60;
   // Game loop!
   app.ticker.add((ticker) => {
     const dt = ticker.deltaMS / 1000;
+    fps = ticker.FPS;
     // calculateBlockCollision(player, chunks, dt);
     rapierWorld.step(eventQueue, rapierHook);
 
@@ -89,8 +120,9 @@ game.ready.then(async (app) => {
     // });
 
     const playerPos = player.body.translation();
+    changeMouseWorldPos(screenSize, camera);
 
-    changeChunksInRender(rapierWorld, playerPos, chunks); // queue updates
+    changeChunksInRender(playerPos, chunks); // queue updates
     processChunkQueue(rapierWorld, app, worldContainer);
 
     // Sync sprite's pos with body's pos (skip fixed/static bodies — they never move)
@@ -104,21 +136,33 @@ game.ready.then(async (app) => {
     camera.pos = playerPos;
     worldContainer.scale = camera.scale;
     worldContainer.position.set(
-      -camera.pos.x * camera.scale + world.width / 2,
-      -camera.pos.y * camera.scale + world.heigth / 2
+      -camera.pos.x * camera.scale + screenSize.width / 2,
+      -camera.pos.y * camera.scale + screenSize.height / 2
     );
 
+    const walkStat = playerStats.movement.walk;
+    const jumpStat = playerStats.movement.jump;
+    const mineStat = playerStats.mining;
+
+    //updateCooldown(dt, jumpStat.cooldown);
     if (keys["KeyW"]) {
-      player.body.applyImpulse({ x: 0, y: -100 }, true);
+      if (jumpStat.cooldown > 0) return;
+      move(player, "up", jumpStat.strength * 15);
+      // player.body.applyImpulse({ x: 0, y: -jumpStat.strength * 15 }, true);
+
+      jumpStat.cooldown = 1;
     }
     if (keys["KeyS"]) {
-      player.body.applyImpulse({ x: 0, y: 100 }, true);
+      move(player, "down", jumpStat.strength * 15);
+      //player.body.applyImpulse({ x: 0, y: jumpStat.strength }, true);
     }
     if (keys["KeyA"]) {
-      player.body.applyImpulse({ x: -100, y: 0 }, true);
+      move(player, "left", walkStat.strength);
+      //player.body.applyImpulse({ x: -walkStat.strength, y: 0 }, true);
     }
     if (keys["KeyD"]) {
-      player.body.applyImpulse({ x: 100, y: 0 }, true);
+      move(player, "right", walkStat.strength);
+      // player.body.applyImpulse({ x: walkStat.strength, y: 0 }, true);
     }
     if (keys["KeyO"]) {
       camera.scale *= 0.97;
@@ -127,26 +171,35 @@ game.ready.then(async (app) => {
       camera.scale /= 0.97;
     }
 
-    if (mouseWheel < 0) {
-      // Scroll upwards
-      camera.scale *= 0.9;
-      mouseWheel = 0;
-      console.log("scrool");
-    }
+    // Player-world-interactions
+    mineStat.cooldown = updateCooldown(dt, mineStat.cooldown);
 
-    if (mouseWheel > 0) {
-      // Scroll downwards
-      camera.scale /= 0.9;
-      mouseWheel = 0;
+    if (mouseButtons["Left"]) {
+      if (mineStat.cooldown > 0) return;
+      mineBlock(chunks, mouseWorldPos, playerStats);
+      mineStat.cooldown = mineStat.speed;
+    }
+    if (mouseButtons["Right"]) {
+      // invenstory.inventory.push(materialInt);
+      const pos = mouseWorldPos;
+      const chunk = findChunk(pos, chunks);
+      if (!chunk) return;
+      const [idx, materialInt] = findBlock(pos, chunk);
+
+      // Only place if the target block is air
+      if (getMaterial(materialInt).solid) return;
+
+      // Only place if at least one adjacent block is solid
+      const hasAdjacentSolid = findBorderingBlocks(pos, chunks, 1)
+        .flat()
+        .some(
+          (b: [number, number] | undefined) =>
+            b !== undefined && getMaterial(b[1]).solid
+        );
+      if (!hasAdjacentSolid) return;
+
+      changeBlock(chunk.blocks, idx, "earth");
+      chunk.renderdChange = true;
     }
   });
 });
-
-export let mouseWheel = 0;
-
-export const setupMouseWheel = () => {
-  addEventListener("wheel", (e) => {
-    mouseWheel = Math.sign(e.deltaY);
-  });
-};
-

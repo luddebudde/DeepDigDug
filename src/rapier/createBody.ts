@@ -28,7 +28,11 @@ export const createBody = (
     dimensions.height / 2
   )
     .setDensity(density)
-    .setActiveEvents(staticMode === true ? RAPIER.ActiveEvents.COLLISION_EVENTS : RAPIER.ActiveEvents.NONE);
+    .setActiveEvents(
+      staticMode === false
+        ? RAPIER.ActiveEvents.COLLISION_EVENTS
+        : RAPIER.ActiveEvents.NONE
+    );
 
   // Apply collider
   rapierWorld.createCollider(colliderMesh, body).setSensor(isSensor);

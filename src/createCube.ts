@@ -20,6 +20,7 @@ export type Dimensions = {
 };
 
 export type Object = {
+  type: string;
   pos: Vec2;
   body: RAPIER.RigidBody;
   sprite: Sprite | Graphics;
@@ -31,6 +32,7 @@ export const createCube = async (
   worldContainer: Container,
   rapierWorld: RAPIER.World,
   objects: Object[],
+  type: string,
   rapier: {
     pos: Vec2;
     width: number;
@@ -78,13 +80,13 @@ export const createCube = async (
 
   if (texture === undefined) {
     console.log("TEXTURE IS NOT DEFINED!!!!!");
-
-    return {} as Rectangle;
+    throw new Error("Texture failed to load: " + pixi?.pixiUrl);
   }
   const sprite: Sprite = createSprite(dimensions, texture, pixi?.zIndex);
 
   // Create object
   const rectangle: Object = {
+    type: type,
     pos: body.translation(),
     body: body,
     sprite: sprite,
