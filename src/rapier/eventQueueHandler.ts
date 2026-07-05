@@ -28,14 +28,17 @@ export const runEventQueueCheck = (eventQueue: RAPIER.EventQueue) =>
       if (started) {
         //console.log("collision event");
 
-        if (
-          doubleCheck("player")
-        ) {
+        if (doubleCheck("player")) {
+          playerStats.movement.onGround = true;
           playerStats.movement.jump.cooldown = 0;
         }
       }
-      //  // When collison ends/didnt start now
-      //   else {
-      //   }
+      // When collison ends/didnt start now
+      else {
+        if (doubleCheck("player")) {
+          playerStats.movement.onGround = false;
+          playerStats.movement.jump.cooldown = 0;
+        }
+      }
     }
   );

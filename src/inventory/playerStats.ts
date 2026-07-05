@@ -7,6 +7,7 @@ export type PlayerStats = {
     cooldown: number;
   };
   movement: {
+    onGround: boolean;
     walk: {
       strength: number;
     };
@@ -24,6 +25,7 @@ export const playerStats = {
     cooldown: 0,
   },
   movement: {
+    onGround: false,
     walk: {
       strength: 100,
     },
