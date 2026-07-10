@@ -28,17 +28,21 @@ import {
   findChunk,
   Integer,
 } from "./findWorldBlocks";
-import { getMaterial } from "./world_generation/materials";
+import { getMaterial, getMaterialId } from "./world_generation/materials";
 import { origo } from "./math/vec";
 import { mineBlock } from "./mineBlock";
 import { playerStats } from "./inventory/playerStats";
 import { cooldownPerSecond, updateCooldown } from "./inventory/updateCooldown";
-import { invenstory } from "./inventory/inventory";
+import { inventory, notifyInventoryChanged, Slot } from "./inventory/inventory";
 import { move } from "./move";
+import { useScreen } from "./screens/ScreenContext";
+import { getMaterialFromItem } from "./inventory/items";
+import { removeFromInventory } from "./inventory/addToInventory";
 
 // Refactor segments of code to seperate files
 // Clear up some code
 // More functions (arrow up)
+// Make player not possible to place blocks on himself/enemies
 
 // Create first elements
 const screenSize: Dimensions = {
@@ -147,13 +151,13 @@ game.ready.then(async (app) => {
     //updateCooldown(dt, jumpStat.cooldown);
     if (keys["KeyW"]) {
       if (jumpStat.cooldown > 0) return;
-      move(player, "up", jumpStat.strength * 15);
+      move(player, "up", jumpStat.strength);
       // player.body.applyImpulse({ x: 0, y: -jumpStat.strength * 15 }, true);
 
       jumpStat.cooldown = 1;
     }
     if (keys["KeyS"]) {
-      move(player, "down", jumpStat.strength * 15);
+      move(player, "down", jumpStat.strength);
       //player.body.applyImpulse({ x: 0, y: jumpStat.strength }, true);
     }
     if (keys["KeyA"]) {
@@ -170,10 +174,16 @@ game.ready.then(async (app) => {
     if (keys["KeyP"]) {
       camera.scale /= 0.97;
     }
+    // if (keys["KeyH"]) {
+    //   const { openOverlay, toggleOverlay } = useScreen();
+    //   // in a click handler or keydown:
+    //   openOverlay("inventory");
+    // }
 
     // Player-world-interactions
     mineStat.cooldown = updateCooldown(dt, mineStat.cooldown);
 
+    // Add a max length away from player
     if (mouseButtons["Left"]) {
       if (mineStat.cooldown > 0) return;
       mineBlock(chunks, mouseWorldPos, playerStats);
@@ -185,11 +195,10 @@ game.ready.then(async (app) => {
       const chunk = findChunk(pos, chunks);
       if (!chunk) return;
       const [idx, materialInt] = findBlock(pos, chunk);
-
-      // Only place if the target block is air
+      // If target is solid, then return
       if (getMaterial(materialInt).solid) return;
 
-      // Only place if at least one adjacent block is solid
+      // Check blocks around target
       const hasAdjacentSolid = findBorderingBlocks(pos, chunks, 1)
         .flat()
         .some(
@@ -198,7 +207,14 @@ game.ready.then(async (app) => {
         );
       if (!hasAdjacentSolid) return;
 
-      changeBlock(chunk.blocks, idx, "earth");
+      const hotbarSlot = inventory.content[inventory.selectedHotbarSlot];
+      if (hotbarSlot === undefined) return
+      const hotbarMaterial = getMaterialFromItem(hotbarSlot.item);
+
+      if (hotbarMaterial === undefined) return;
+      removeFromInventory(hotbarSlot, 1);
+      notifyInventoryChanged();
+      changeBlock(chunk.blocks, idx, hotbarMaterial.name);
       chunk.renderdChange = true;
     }
   });

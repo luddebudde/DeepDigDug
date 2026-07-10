@@ -33,15 +33,14 @@ export const mouseButtons: Record<string, boolean> = {};
 
 export function setupMouseListeners(): void {
   window.addEventListener("mousedown", (e) => {
+    if (!(e.target instanceof HTMLCanvasElement)) return;
     if (e.button === 0) mouseButtons["Left"] = true;
     if (e.button === 2) mouseButtons["Right"] = true;
-    // console.log("Ner:", e.button);
   });
 
   window.addEventListener("mouseup", (e) => {
     if (e.button === 0) mouseButtons["Left"] = false;
     if (e.button === 2) mouseButtons["Right"] = false;
-    // console.log("Upp:", e.button);
   });
 
   window.addEventListener("mousemove", (e) => {

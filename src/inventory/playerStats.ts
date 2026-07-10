@@ -30,7 +30,7 @@ export const playerStats = {
       strength: 100,
     },
     jump: {
-      strength: 100,
+      strength: 750,
       cooldown: 10,
     },
   },
