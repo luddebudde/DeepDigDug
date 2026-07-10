@@ -38,6 +38,7 @@ import { move } from "./move";
 import { useScreen } from "./screens/ScreenContext";
 import { getMaterialFromItem } from "./inventory/items";
 import { removeFromInventory } from "./inventory/addToInventory";
+import { worldHeight } from "./world_generation/perlinConstants";
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -76,6 +77,11 @@ const rapierHook = {
 createRoot(document.getElementById("root")!).render(<ScreenHandler />);
 
 const wakeObjects: Object[] = [];
+
+const resetPlayer = (player: Object) => {
+  player.body.setLinvel({ x: 0, y: 0 }, true);
+  player.body.setTranslation(origo, true);
+};
 
 // Creating "game"
 game.ready.then(async (app) => {
@@ -126,6 +132,10 @@ game.ready.then(async (app) => {
     const playerPos = player.body.translation();
     changeMouseWorldPos(screenSize, camera);
 
+    if (playerPos.y > worldHeight * 1.5) {
+      resetPlayer(player);
+    }
+
     changeChunksInRender(playerPos, chunks); // queue updates
     processChunkQueue(rapierWorld, app, worldContainer);
 
@@ -173,6 +183,9 @@ game.ready.then(async (app) => {
     }
     if (keys["KeyP"]) {
       camera.scale /= 0.97;
+    }
+    if (keys["KeyR"]) {
+      resetPlayer(player);
     }
     // if (keys["KeyH"]) {
     //   const { openOverlay, toggleOverlay } = useScreen();

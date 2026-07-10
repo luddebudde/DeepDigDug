@@ -1,4 +1,4 @@
-import { Assets, Graphics, Sprite, Texture } from "pixi.js";
+import { Assets, Sprite, Texture } from "pixi.js";
 
 const textureCache = new Map<string, Texture>();
 
@@ -16,18 +16,6 @@ export const createSprite = (
   texture: Texture,
   priorityIndex?: number
 ): Sprite => {
-  // if (texture == null) {
-  //   const graphics = new Graphics().rect(
-  //     -dimensions.width / 2,
-  //     -dimensions.height / 2,
-  //     dimensions.width,
-  //     dimensions.height
-  //   );
-  //   graphics.cullable = true;
-  //   //  const alpha = physics.sensorMode ? 0.5 : 1;
-  //   return undefined;
-  // }
-
   const sprite = new Sprite(texture);
   sprite.anchor.set(0.5);
   sprite.width = dimensions.width;
@@ -35,6 +23,5 @@ export const createSprite = (
   sprite.zIndex = priorityIndex ?? 0;
   sprite.cullable = true;
 
-  //  const alpha = physics.sensorMode ? 0.5 : 1;
   return sprite;
 };

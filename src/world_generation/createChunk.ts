@@ -28,7 +28,6 @@ export type Chunk = {
 
 export type Mesh = { row: number; column: number };
 
-// WILL CRASH IF SPACE BETWEEN TWO CHUNKS IS A WHOLE EMPTY CHUNK
 export const createChunk = (
   worldContainer: Container,
   rapierWorld: RAPIER.World,

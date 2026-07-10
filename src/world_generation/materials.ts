@@ -11,7 +11,6 @@ export type Material = {
     item: keyof typeof itemPlaceholds;
     amount: number;
   }; // just a string key
-  opacity?: number;
 };
 
 // CHANGE MATERIAL NAMES
@@ -22,7 +21,6 @@ export const materials: Record<string, Material> = {
     resitution: 0,
     png: "coal_texture",
     solid: false,
-    opacity: 0,
   },
   earth: {
     name: "earth",
@@ -59,7 +57,6 @@ export const materials: Record<string, Material> = {
     name: "ice",
     density: 0.001,
     resitution: 0.2,
-    opacity: 0.8,
     solid: true,
     png: "silver_ore.png",
     drop: { item: "rock", amount: 1 },
@@ -82,15 +79,6 @@ const materialIdMap = new Map<string, number>(
 
 type TextureMap = Record<string, Texture>;
 
-// const assets: Assets = {
-//   air: Texture.EMPTY,
-//   rock: await Assets.load("stone_texture.png"),
-//   earth: await Assets.load("dirt_texture.png"),
-//   grass: await Assets.load("ladder_sprite.png"),
-//   snow: await Assets.load("diamond_ore.png"),
-//   ice: await Assets.load("silver_ore.png"),
-//   rubber: await Assets.load("pickaxe_sprite.png"),
-// };
 export const assets: TextureMap = Object.fromEntries(
   await Promise.all(
     materialKeys.map(async (key) => {

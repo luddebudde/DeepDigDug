@@ -1,10 +1,4 @@
-import {
-  Application,
-  Container,
-  RenderTexture,
-  Sprite,
-  Texture,
-} from "pixi.js";
+import { Application, Container, RenderTexture, Sprite } from "pixi.js";
 import { Chunk } from "../world_generation/createChunk";
 import {
   blockSize,
@@ -35,7 +29,6 @@ export const reRenderChunk = (
   worldContainer: Container,
   chunk: Chunk
 ) => {
-  //container.updateCacheTexture();
   renderChunk(app, worldContainer, chunk);
 };
 
@@ -107,77 +100,16 @@ export const renderChunk = (
   worldContainer.addChild(chunkSprite);
   chunk.sprite = chunkSprite;
 
-  chunkContainer.destroy({ children: true }); // this part you already do — good
+  chunkContainer.destroy({ children: true }); 
 };
 
 let chunksInRender: Chunk[] = [] as Chunk[];
 
-// export const changeChunksInRender = (
-//   rapierWorld: RAPIER.World,
-//   playerPos: Vec2,
-//   chunks: Chunk[][]
-// ) => {
-//   const range = 0;
-
-//   const currentRenderdChunks: Chunk[] =
-//     // Returns (Chunk | undefined)[][]
-//     findBorderingChunks(playerPos, chunks, range)
-//       // Returns (Chunk | undefined)[]
-//       .flat()
-//       // Returns Chunk[]
-//       .filter((chunk: Chunk | undefined) => chunk !== undefined);
-
-//   //.flat();
-
-//   const removedChunks: Chunk[] = chunksInRender.filter(
-//     (chunk: Chunk) => !currentRenderdChunks.includes(chunk)
-//   );
-
-//   // Returns new chunks
-//   const newlyAddedChunks: Chunk[] = currentRenderdChunks.filter(
-//     (chunk: Chunk) => !chunksInRender.includes(chunk)
-//   );
-
-//   //  console.log(currentRenderdChunks, removedChunks, newlyAddedChunks);
-
-//   newlyAddedChunks.map((chunk: Chunk) => {
-//     const chunkRapier = chunk.rapier;
-//     chunkRapier.body = rapierWorld.createRigidBody(chunkRapier.desc);
-//     chunk.blocks.flat().map((block: Block) => {
-//       if (!block.material.solid) return;
-//       const colliderMesh = RAPIER.ColliderDesc.cuboid(
-//         blockSize / 2,
-//         blockSize / 2
-//       ).setDensity(block.material.density);
-
-//       // Apply collider
-//       const collider: RAPIER.Collider = rapierWorld.createCollider(
-//         colliderMesh,
-//         chunkRapier.body
-//       );
-//       collider.setSensor(!block.material.solid ? true : false);
-//       block.collider = collider;
-//     });
-//   });
-//   //console.log(removedChunks, newlyRenderedChunks);
-
-//   removedChunks.map((chunk: Chunk) => {
-//     rapierWorld.removeRigidBody(chunk.rapier.body);
-//     // chunk.blocks.flat().map((block: Block) => {
-//     //   if (block.collider === undefined) return;
-//     //   rapierWorld.removeRigidBody(chunk.rapier.body);
-//     // });
-//   });
-
-//   chunksInRender = currentRenderdChunks;
-// };
-
-// 1. SPREAD THE WORK — process chunks over multiple frames using a queue
 let chunksToAdd: Chunk[] = [];
 let chunksToRemove: Chunk[] = [];
 let isProcessing = false;
 
-const CHUNKS_PER_FRAME = 2; // tune this — 1-2 is smooth, higher = faster load but more stutter
+const CHUNKS_PER_FRAME = 2; // More === stutter and always rendering
 
 export const processChunkQueue = (
   rapierWorld: RAPIER.World,
@@ -187,7 +119,6 @@ export const processChunkQueue = (
   for (let i = 0; i < CHUNKS_PER_FRAME && chunksToRemove.length > 0; i++) {
     const chunk = chunksToRemove.shift()!;
 
-    // Actually free GPU/CPU resources instead of just hiding
     if (chunk.sprite) {
       worldContainer.removeChild(chunk.sprite);
       chunk.sprite.destroy();
@@ -209,13 +140,10 @@ export const processChunkQueue = (
 
     addChunkToPhysics(rapierWorld, chunk);
 
-    // chunk.sprite is now always undefined after being removed,
-    // so this always re-renders fresh — no stale "just show it again" path
     renderChunk(app, worldContainer, chunk);
   }
 };
 
-// 2. DEDUPLICATE — don't rebuild chunks that are already loaded
 export const changeChunksInRender = (playerPos: Vec2, chunks: Chunk[][]) => {
   // Standard: 3
   const range = 3;
