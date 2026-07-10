@@ -43,10 +43,8 @@ const materialIdMap = new Map<string, number>(
   itemKeys.map((key, index) => [key, index])
 );
 
-export const getItemlId = (
-  key: keyof typeof itemPlaceholds
-): number | undefined => {
-  const id = materialIdMap.get(key);
+export const getItemlId = (key: keyof typeof itemPlaceholds): number => {
+  const id: number = materialIdMap.get(key)!;
 
   return id;
 };
@@ -58,7 +56,6 @@ export const getItem = (id: number): ItemPlacehold => {
   }
   return itemPlaceholds[key];
 };
-
 export const getMaterialFromItem = (
   item: ItemPlacehold
 ): Material | undefined => {

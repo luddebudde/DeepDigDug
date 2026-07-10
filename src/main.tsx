@@ -194,8 +194,8 @@ game.ready.then(async (app) => {
       const pos = mouseWorldPos;
       const chunk = findChunk(pos, chunks);
       if (!chunk) return;
-      const [idx, materialInt] = findBlock(pos, chunk);
       // If target is solid, then return
+      const [idx, materialInt] = findBlock(pos, chunk);
       if (getMaterial(materialInt).solid) return;
 
       // Check blocks around target
@@ -208,7 +208,7 @@ game.ready.then(async (app) => {
       if (!hasAdjacentSolid) return;
 
       const hotbarSlot = inventory.content[inventory.selectedHotbarSlot];
-      if (hotbarSlot === undefined) return
+      if (hotbarSlot === undefined || !hotbarSlot.item.placeable) return;
       const hotbarMaterial = getMaterialFromItem(hotbarSlot.item);
 
       if (hotbarMaterial === undefined) return;

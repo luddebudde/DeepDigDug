@@ -1,38 +1,25 @@
 import {
   Application,
-  Assets,
   Container,
   RenderTexture,
   Sprite,
   Texture,
-  TEXTURE_FORMAT_BLOCK_SIZE,
 } from "pixi.js";
 import { Chunk } from "../world_generation/createChunk";
 import {
   blockSize,
   chunkRelSize,
-  chunkSize,
   xWorldOffset,
 } from "../world_generation/perlinConstants";
 import { createSprite } from "./createSprite";
-import { promises } from "node:dns";
 import { findBorderingChunks, idxToGrid } from "../findWorldBlocks";
-import { createVec, cubify, Vec2 } from "../math/vec";
-import { createBody } from "../rapier/createBody";
+import { Vec2 } from "../math/vec";
 import RAPIER from "@dimforge/rapier2d";
-import { getMaterial, materialKeys } from "../world_generation/materials";
-
-type Assets = Record<string, Texture>;
-
-const assets: Assets = {
-  air: Texture.EMPTY,
-  rock: await Assets.load("stone_texture.png"),
-  earth: await Assets.load("dirt_texture.png"),
-  grass: await Assets.load("ladder_sprite.png"),
-  snow: await Assets.load("diamond_ore.png"),
-  ice: await Assets.load("silver_ore.png"),
-  rubber: await Assets.load("pickaxe_sprite.png"),
-};
+import {
+  assets,
+  getMaterial,
+  materialKeys,
+} from "../world_generation/materials";
 
 export type Camera = {
   // Center

@@ -19,7 +19,6 @@ export const p3 = perlin(horizontalBoxes, verticalBoxes, 16, hvRatio * 16);
 export const rockness = perlin(horizontalBoxes, verticalBoxes, 2, hvRatio * 2);
 export const rockEarthRatio = 0.05;
 
-export const isWinter = Math.random() * 2 < 1;
 const worldYOffset = 500;
 
 export const p1Weight = 30;

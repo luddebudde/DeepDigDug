@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Inventory,
   inventory,
@@ -16,8 +17,9 @@ const getSlotSize = (inv: Inventory): number => {
 
 export const InventoryMenu = () => {
   const { closeOverlay } = useScreen();
-  const inv = useInventory();
+  const [swapCandidateIdx, setSwapCandidateIdx] = useState<number>(0);
 
+  const inv = useInventory();
   const hotbarSize = inv.hotbarSize;
   const slotSize = getSlotSize(inv);
 
@@ -30,9 +32,23 @@ export const InventoryMenu = () => {
             return (
               <div
                 key={i}
-                onClick={() => {
-                  if (i > inv.hotbarSize) return;
-                  inv.selectedHotbarSlot = i;
+                // onClick={() => {
+                //   if (i > inv.hotbarSize) return;
+                //   inv.selectedHotbarSlot = i;
+                //   notifyInventoryChanged();
+                // }}
+                // Prepare swap
+                onMouseDown={() => {
+                  setSwapCandidateIdx(i);
+                }}
+                // Swap
+                onMouseUp={() => {
+                  const candidate = inv.content[swapCandidateIdx];
+
+                  if (candidate === undefined) return;
+                  inv.content[i] = candidate;
+                  inv.content[swapCandidateIdx] = slot;
+
                   notifyInventoryChanged();
                 }}
                 style={{
@@ -48,6 +64,7 @@ export const InventoryMenu = () => {
                   <>
                     <img
                       src={slot.item.png}
+                      draggable={false}
                       style={{
                         width: "100%",
                         height: "100%",
@@ -86,6 +103,7 @@ const backdropStyle: React.CSSProperties = {
   justifyContent: "left",
   zIndex: 20,
   pointerEvents: "none",
+  userSelect: "none",
 };
 
 const panelStyle: React.CSSProperties = {
@@ -125,7 +143,7 @@ const closeButtonStyle: React.CSSProperties = {
 };
 
 export const HotbarMenu = () => {
-  const { closeOverlay } = useScreen();
+  const { toggleOverlay } = useScreen();
   const inv = useInventory();
 
   const hotbarSize = inv.hotbarSize;
@@ -142,6 +160,9 @@ export const HotbarMenu = () => {
             return (
               <div
                 key={i}
+                onDoubleClick={() => {
+                  toggleOverlay("inventory");
+                }}
                 onClick={() => {
                   inv.selectedHotbarSlot = i;
                   notifyInventoryChanged();

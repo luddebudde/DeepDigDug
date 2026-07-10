@@ -4,7 +4,6 @@ import { createVec } from "../../math/vec";
 import {
   blockSize,
   horizontalBoxes,
-  isWinter,
   p1,
   p1Weight,
   pTotalWeight,
@@ -61,9 +60,7 @@ export const ridges = () =>
         newValue < ridgesThresHold
           ? "air"
           : (relY * relY * (rockness[row][column] + 1)) / 2 > rockEarthRatio
-            ? isWinter
-              ? "ice"
-              : "rock"
+            ? "rock"
             : "earth";
 
       return [newValue, material, pos] as const;

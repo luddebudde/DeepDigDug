@@ -14,7 +14,6 @@ import {
   worldWidth,
   rockness,
   rockEarthRatio,
-  isWinter,
   xWorldOffset,
 } from "../perlinConstants";
 
@@ -50,14 +49,14 @@ export const caves = () =>
 
       const newValue = fadeBorder * value;
 
+      // relY === "relative Y-coordinates
+      // 0 === absolute surface, 1 === absolute bottom
       const relY = pos.y / worldHeight;
       const material =
         newValue < cavesThresHold
           ? "air"
           : (relY * relY * (rockness[row][column] + 1)) / 2 > rockEarthRatio
-            ? isWinter
-              ? "ice"
-              : "rock"
+            ? "rock"
             : "earth";
 
       return [newValue, material, pos] as const;

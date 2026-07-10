@@ -12,7 +12,6 @@ export type Slot = {
   item: ItemPlacehold;
   amount: number;
   maxStackSize: number;
-  placeable: boolean;
 };
 
 const slotAmount = 40;

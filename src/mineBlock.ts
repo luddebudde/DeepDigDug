@@ -48,6 +48,6 @@ export const mineBlock = (
 
 const breakBlock = (chunk: Chunk, blockIdx: number, materialInt: Integer) => {
   // AddToInventory() should be placed inside a pickUp() function instead
-  addToInventory(materialInt, 1);
+  addToInventory(materialInt);
   changeBlock(chunk.blocks, blockIdx, "air");
 };

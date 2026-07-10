@@ -3,14 +3,19 @@ import { getMaterial } from "../world_generation/materials";
 import { inventory, notifyInventoryChanged, Slot } from "./inventory";
 import { getItem, getItemlId } from "./items";
 
-export const addToInventory = (materialId: Integer, amount: number) => {
+export const addToInventory = (materialId: Integer) => {
   const material = getMaterial(materialId);
-  const itemId = getItemlId(material.name);
-  if (itemId === undefined) {
-    console.log("item does not exist in item format");
+  if (material.drop === undefined) {
+    console.log(
+      "item does not exist in item format; failed to find material.drop"
+    );
 
     return;
   }
+  const itemId = getItemlId(material.drop.item);
+  // If amount + already existing amount exceedes the max slot cap, the slot will overstack
+  const amount = material.drop.amount;
+
   const item = getItem(itemId);
 
   const unFilledSlot = inventory.content
@@ -29,7 +34,6 @@ export const addToInventory = (materialId: Integer, amount: number) => {
       item,
       amount,
       maxStackSize: item.stackSize,
-      placeable: item.placeable,
     };
 
     const emptySlotIndex = inventory.content.findIndex(

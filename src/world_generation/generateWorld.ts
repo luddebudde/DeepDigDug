@@ -4,23 +4,15 @@ import { createCube, Object } from "../createCube";
 import { getMaterialId, materials } from "./materials";
 import { mapMat } from "../math/matrix";
 import { caves } from "./perlin_matrix/perlinCaves";
-import { isWinter } from "./perlinConstants";
+
 import { Vec2 } from "../math/vec";
 import { ridges } from "./perlin_matrix/perlinRidges";
 import { Chunk, createChunk } from "./createChunk";
 
 type MaterialKey = keyof typeof materials;
 type TerrainEntry = [number, MaterialKey, Vec2, number, number];
-const sprites = [
-  "dirt_texture.png",
-  "coal_texture.png",
-  "silver_ore.png",
-  "stone_texture.png",
-  "diamond_ore.png",
-];
 
-const terrainType = Math.random() > 0.5 ? "cave" : "cave";
-const terrainWithoutGrass = terrainType === "cave" ? caves() : ridges();
+const terrainWithoutGrass = caves();
 
 const generatedTerrain = mapMat(
   terrainWithoutGrass,
@@ -33,7 +25,7 @@ const generatedTerrain = mapMat(
     const isBelowAir = terrainWithoutGrass[column][row - 1]?.[1] === "air";
     return [
       value,
-      isEarth && isBelowAir ? (isWinter ? "snow" : "grass") : material,
+      isEarth && isBelowAir ? "grass" : material,
       pos,
       column,
       row,
