@@ -31,16 +31,17 @@ export const mineBlock = (
   const [idx, materialInt] = findBlock(pos, chunk);
 
   // console.log(chunk);
+  const material = getMaterial(materialInt);
 
   const block = getOrCreate(chunk.damagedBlocks, "idx", idx, {
     idx,
     materialInt,
-    durability: 100,
+    durability: material.durability,
   });
 
   block.durability -= playerStats.mining.power;
 
-  if (block.durability >= 0) {
+  if (block.durability <= 0) {
     breakBlock(chunk, idx, materialInt);
   }
   chunk.renderdChange = true;

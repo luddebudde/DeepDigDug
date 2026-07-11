@@ -1,6 +1,7 @@
 import { Material, materials } from "../world_generation/materials";
 
 export type ItemPlacehold = {
+  name: string;
   stackSize: number;
   png: string;
   placeable: boolean;
@@ -11,14 +12,52 @@ export type ItemPlacehold = {
 export const itemPlaceholds: Record<string, ItemPlacehold> = {
   earth: {
     // Original: 256
-    stackSize: 3,
+    name: "Earth",
+    stackSize: 64,
     placeable: true,
     png: materials.earth.png,
   },
   rock: {
-    stackSize: 128,
+    name: "Rock",
+    stackSize: 64,
     placeable: true,
     png: materials.rock.png,
+  },
+  treeOre: {
+    name: "Tree ore",
+    stackSize: 64,
+    placeable: true,
+    png: materials.treeOre.png,
+  },
+  coal: {
+    name: "Coal",
+    stackSize: 16,
+    placeable: true,
+    png: materials.coal.png,
+  },
+  iron: {
+    name: "Iron",
+    stackSize: 8,
+    placeable: true,
+    png: materials.iron.png,
+  },
+  diamond: {
+    name: "Diamond",
+    stackSize: 4,
+    placeable: true,
+    png: materials.diamond.png,
+  },
+  snow: {
+    name: "Snow",
+    stackSize: 256,
+    placeable: true,
+    png: materials.snow.png,
+  },
+  ice: {
+    name: "Ice",
+    stackSize: 64,
+    placeable: true,
+    png: materials.ice.png,
   },
   //   grass: {
   //     color: (val: number) => rgb(val * 0, val * 1, val * 0),

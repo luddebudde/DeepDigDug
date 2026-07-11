@@ -1,64 +1,86 @@
 import { mapMat, addMat, scaleMat } from "../../math/matrix";
-import { createVec } from "../../math/vec";
+import { perlin } from "../../math/perlin";
 import {
-  p1,
-  p1Weight,
-  pTotalWeight,
-  p2,
-  p2Weight,
-  p3,
-  p3Weight,
   blockSize,
-  horizontalBoxes,
   worldHeight,
   worldWidth,
-  rockness,
-  rockEarthRatio,
+  horizontalBoxes,
+  verticalBoxes,
   xWorldOffset,
 } from "../perlinConstants";
 
-//const cavesThresHold = random(0.2, 0.4);
-export const cavesThresHold = 0.25;
+const hvRatio = 1 / 2;
 
-export const caves = () =>
-  mapMat(
-    mapMat(
-      addMat(
-        addMat(
-          scaleMat(p1, p1Weight / pTotalWeight),
-          scaleMat(p2, p2Weight / pTotalWeight)
-        ),
-        scaleMat(p3, p3Weight / pTotalWeight)
-      ),
-      (val, column, row) => {
-        const coord = createVec(
-          column * blockSize + xWorldOffset,
-          row * blockSize
-        );
+const p1 = perlin(
+  horizontalBoxes,
+  verticalBoxes,
+  worldWidth / 1875,
+  worldHeight / hvRatio / 3750
+);
+const p2 = perlin(
+  horizontalBoxes,
+  verticalBoxes,
+  worldWidth / 1406,
+  worldHeight / hvRatio / 2800
+);
+const p3 = perlin(
+  horizontalBoxes,
+  verticalBoxes,
+  worldWidth / 703,
+  worldHeight / hvRatio / 1400
+);
 
-        return [(val + 1) / 2, coord] as const;
-      }
+const p1Weight = 30;
+const p2Weight = 30;
+const p3Weight = 15;
+const pTotalWeight = p1Weight + p2Weight + p3Weight;
+
+// Returns a number[][] where each value is the cave density (0..1).
+// Low values = cave/air. Threshold is applied in generateWorld.
+export const caves = (): number[][] => {
+  const blended = addMat(
+    addMat(
+      scaleMat(p1, p1Weight / pTotalWeight),
+      scaleMat(p2, p2Weight / pTotalWeight)
     ),
-    ([value, pos], row, column) => {
-      const fadeBorder =
-        16 *
-        ((1 - pos.y / worldHeight) *
-          (pos.y / worldHeight) *
-          (1 - (pos.x + worldWidth / 2) / worldWidth) *
-          ((pos.x + worldWidth / 2) / worldWidth));
-
-      const newValue = fadeBorder * value;
-
-      // relY === "relative Y-coordinates
-      // 0 === absolute surface, 1 === absolute bottom
-      const relY = pos.y / worldHeight;
-      const material =
-        newValue < cavesThresHold
-          ? "air"
-          : (relY * relY * (rockness[row][column] + 1)) / 2 > rockEarthRatio
-            ? "rock"
-            : "earth";
-
-      return [newValue, material, pos] as const;
-    }
+    scaleMat(p3, p3Weight / pTotalWeight)
   );
+
+  return mapMat(blended, (val, column, row) => {
+    const normalised = (val + 1) / 2;
+    const x = column * blockSize + xWorldOffset;
+    const y = row * blockSize;
+    // Fades caves out at left/right/bottom world edges only.
+    // The top boundary is handled by surfaceRow in generateWorld, so we
+    // deliberately do NOT fade at y=0 — the old formula caused all surface
+    // blocks to receive a cave value of ~0, killing grass and snow.
+    const sideFade =
+      (1 - (x + worldWidth / 2) / worldWidth) *
+      ((x + worldWidth / 2) / worldWidth) *
+      4;
+    const bottomFade = Math.min(1, (worldHeight - y) / (worldHeight * 0.1));
+    const fadeBorder = sideFade * bottomFade;
+    return fadeBorder * normalised;
+  });
+};
+
+// --- OLD caves() that assigned materials directly ---
+// const rockness = perlin(horizontalBoxes, verticalBoxes, 2, hvRatio * 2);
+// const rockEarthRatio = 0.05;
+// const cavesThresHold = 0.25;
+// export const cavesOld = () =>
+//   mapMat(
+//     mapMat(blended, (val, column, row) => {
+//       const coord = createVec(column * blockSize + xWorldOffset, row * blockSize);
+//       return [(val + 1) / 2, coord] as const;
+//     }),
+//     ([value, pos], row, column) => {
+//       const fadeBorder = 16 * ((1 - pos.y / worldHeight) * (pos.y / worldHeight) *
+//         (1 - (pos.x + worldWidth / 2) / worldWidth) * ((pos.x + worldWidth / 2) / worldWidth));
+//       const newValue = fadeBorder * value;
+//       const relY = pos.y / worldHeight;
+//       const material = newValue < cavesThresHold ? "air"
+//         : (relY * relY * (rockness[row][column] + 1)) / 2 > rockEarthRatio ? "rock" : "earth";
+//       return [newValue, material, pos] as const;
+//     }
+//   );

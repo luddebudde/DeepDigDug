@@ -51,7 +51,7 @@ const screenSize: Dimensions = {
   height: screen.height,
 };
 
-const gravity = { x: 0, y: 980.1 };
+const gravity = { x: 0, y: 1500.1 };
 const rapierWorld = new RAPIER.World(gravity);
 const eventQueue = new RAPIER.EventQueue(true);
 
@@ -103,7 +103,7 @@ game.ready.then(async (app) => {
     // Center
     pos: { x: 0, y: 0 },
     // Zoom
-    scale: 0.5,
+    scale: 0.6,
     //scale: 0.1,
     orgWidth: 0,
     orgHeight: 0,

@@ -54,6 +54,10 @@ export const InventoryMenu = () => {
                 style={{
                   ...slotStyle,
 
+                  cursor: slot?.item.png
+                    ? `url(${slot.item.png}) 16 16, auto`
+                    : "auto",
+
                   minWidth: slotSize,
                   minHeight: slotSize,
                   borderColor:
@@ -82,6 +86,19 @@ export const InventoryMenu = () => {
                       }}
                     >
                       {slot.amount}
+                    </span>
+                    <span
+                      // TEXT
+                      style={{
+                        color: "white",
+                        position: "absolute",
+                        bottom: "50%",
+                        right: "50%",
+                        transform: "translate(50%, 75%)",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      {slot.item.name}
                     </span>
                   </>
                 )}

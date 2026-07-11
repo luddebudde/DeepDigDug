@@ -20,7 +20,8 @@ export const createBody = (
     ? RAPIER.RigidBodyDesc.fixed()
     : RAPIER.RigidBodyDesc.dynamic();
 
-  bodyDesc.setTranslation(pos.x, pos.y);
+  bodyDesc.setTranslation(pos.x, pos.y).setLinearDamping(1);
+
   const body = rapierWorld.createRigidBody(bodyDesc);
 
   const colliderMesh = RAPIER.ColliderDesc.cuboid(

@@ -100,7 +100,7 @@ export const renderChunk = (
   worldContainer.addChild(chunkSprite);
   chunk.sprite = chunkSprite;
 
-  chunkContainer.destroy({ children: true }); 
+  chunkContainer.destroy({ children: true });
 };
 
 let chunksInRender: Chunk[] = [] as Chunk[];

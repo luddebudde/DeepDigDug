@@ -9,10 +9,10 @@ export const perlin = (
   gridColumns: number,
   gridRows: number
 ) => {
-  const gridWidth = width / gridColumns;
-  const gridHeight = height / gridRows;
+  const gridWidth = Math.ceil(width / gridColumns);
+  const gridHeight = Math.ceil(height / gridRows);
   const gradients = mapMat(
-    zeros2(gridColumns + 1, gridRows + 1),
+    zeros2(Math.ceil(gridColumns + 1), Math.ceil(gridRows + 1)),
     randomUnitVector
     // randomVectorOf4,
   );

@@ -5,8 +5,8 @@ import {
   blockSize,
   chunkRelSize as relChunkSize,
   chunkSize,
-  xWorldOffset,
   chunkRelSize,
+  xWorldOffset,
 } from "./world_generation/perlinConstants";
 import { getMaterial, getMaterialId } from "./world_generation/materials";
 
