@@ -74,8 +74,12 @@ export const surfaceRows = (): number[] => {
         p3[col][0] * (p3Weight / totalWeight) +
         1) /
       2;
+    const min = 0.35;
+    const max = 0.65;
 
-    return combined * surfaceBand;
+    const normalized = (combined - min) / (max - min);
+
+    return normalized * surfaceBand;
   });
 
   const smoothed = [...heights];

@@ -15,6 +15,7 @@ import {
   undergroundAccentNoise,
 } from "./perlin_matrix/perlinBiomes";
 import { generateOre } from "./perlin_matrix/perlinOres";
+import { normalizeNoise, perlinThreshold } from "../math/perlin";
 
 type MaterialKey = keyof typeof materials;
 
@@ -32,56 +33,55 @@ const terrain = mapMat(
     // Layer 1: above surface → air
     if (row < surfaceRow[col]) return ["air", col, row];
 
+    const normCaveVal = cave[col][row];
     // Layer 2: cave hole → air.
     // First X block is untouched
     const safeSurfaceWidth = 15;
     if (
+      relDepth < surfaceLevel &&
       row > surfaceRow[col] + safeSurfaceWidth &&
-      cave[col][row] < surfaceBiome.airThreshold
+      normCaveVal < surfaceBiome.airThreshold
     )
       return ["air", col, row];
 
     // Generate ores
+    // TODO: Make them only spawn on rock, and not just in the air
     const activeOre = generateOre(relDepth, col, row, surfaceBiome.oreFilter);
     if (activeOre !== undefined) {
+      if (relDepth > surfaceLevel) {
+        const caveBiome = getUndergroundBiome(relDepth, col, row);
+        if (normCaveVal < caveBiome.airThreshold) return ["air", col, row];
+      }
+
       return [activeOre.material.name, col, row];
     }
 
     // Checks if surface or cave
-    if (relDepth < surfaceLevel) {
-      // SURFACE
-      // Create grass
-      if (row === surfaceRow[col]) return [surfaceBiome.grass, col, row];
-      // Add dirt
-      return [surfaceBiome.earth, col, row];
-    } else {
+    if (relDepth > surfaceLevel) {
       // UNDERGROUND ZONE — select biome by 2D noise
       const caveBiome = getUndergroundBiome(relDepth, col, row);
 
-      // Each underground biome has its own cave openness
-      if (cave[col][row] < caveBiome.airThreshold) return ["air", col, row];
-
+      if (normCaveVal < caveBiome.airThreshold) return ["air", col, row];
       // Accent blocks (mushroom caps, crystals, iron veins...)
       if (
         caveBiome.accent !== undefined &&
         caveBiome.accentChance !== undefined &&
-        undergroundAccentNoise[col][row] > caveBiome.accentChance
+        !perlinThreshold(
+          undergroundAccentNoise[col][row],
+          caveBiome.accentChance
+        )
       )
-        return [caveBiome.accent.name as MaterialKey, col, row];
+        return [caveBiome.accent.name, col, row];
 
-      return [caveBiome.wall.name as MaterialKey, col, row];
+      return [caveBiome.wall.name, col, row];
     }
+
+    // SURFACE
+    if (row === surfaceRow[col]) return [surfaceBiome.grass, col, row];
+
+    return [surfaceBiome.earth, col, row];
   }
 );
-
-// --- OLD terrain pipeline (kept for reference) ---
-// const terrainWithoutGrass = caves();  // returned [value, material, pos][][]
-// const terrainWithoutGrass = surface(); // same shape, surface-based
-// const generatedTerrain = mapMat(terrain, ([material, pos], column, row) => {
-//   const isEarth = material === "earth";
-//   const isBelowAir = terrain[column][row - 1]?.[0] === "air";
-//   return [value, isEarth && isBelowAir ? "grass" : material, pos, column, row];
-// }).flat();
 
 export const generateWorld = async (
   app: Application,

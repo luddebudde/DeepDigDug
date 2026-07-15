@@ -30,12 +30,12 @@ export const perlin = (
     // Coordinates relative to the square top-left corner; a value between 0 and 1
     const xf = x / gridWidth - gridLeftColumn;
     const yf = y / gridHeight - gridTopRow;
-    const n = normalise;
+    // const n = normalise;
     // const n = (it) => it
-    const dirTopLeft = n(createVec(xf, yf));
-    const dirTopRight = n(createVec(xf - 1, yf));
-    const dirBottomLeft = n(createVec(xf, yf - 1));
-    const dirBottomRight = n(createVec(xf - 1, yf - 1));
+    const dirTopLeft = createVec(xf, yf);
+    const dirTopRight = createVec(xf - 1, yf);
+    const dirBottomLeft = createVec(xf, yf - 1);
+    const dirBottomRight = createVec(xf - 1, yf - 1);
 
     const dotTopLeft = dot(gradientTopLeft, dirTopLeft);
     const dotTopRight = dot(gradientTopRight, dirTopRight);
@@ -62,3 +62,38 @@ const linearInterpolation = (t: number, a1: number, a2: number): number =>
  * @param t a value between 0 and 1
  */
 const fade = (t: number): number => ((6 * t - 15) * t + 10) * t * t * t;
+
+export const normalizeNoise = (
+  val: number,
+  expectedMin: number = -0.7,
+  expectedMax: number = 0.7
+): number => {
+  // const expectedMin = -0.7;
+  // const expectedMax = 0.7;
+  // Map -0.7...0.7 strictly to 0...1
+  const normalized = (val - expectedMin) / (expectedMax - expectedMin);
+  return Math.max(0, Math.min(1, normalized)); // Clamp
+};
+
+// "If noiseValue is larger than threshold, then true "
+export const perlinThreshold = (
+  noiseValue: number,
+  threshold: number,
+  expectedMin: number = -0.7,
+  expectedMax: number = 0.7
+) => {
+  const normValue = normalizeNoise(noiseValue, expectedMin, expectedMax);
+  const linearized = linearizeNoise(normValue);
+
+  return linearized > threshold;
+};
+
+/**
+ * Flattens the Perlin bell curve so that threshold steps
+ * map much more linearly to actual space/percentages.
+ */
+export const linearizeNoise = (val: number): number => {
+  // A standard smoothstep curve redistributes the tight middle cluster
+  // out toward the edges, flattening the bell-curve rate of change.
+  return val * val * (3 - 2 * val);
+};

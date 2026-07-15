@@ -1,4 +1,4 @@
-import { perlin } from "../../math/perlin";
+import { normalizeNoise, perlin } from "../../math/perlin";
 import { Material, materials } from "../materials";
 import {
   blockSize,
@@ -40,7 +40,7 @@ const biomes: BiomesHolder = {
       earth: "earth",
       rock: "rock",
 
-      airThreshold: 0.25,
+      airThreshold: 0.4,
       oreFilter: [[materials.treeOre, 1]],
       // oreFilter: (ores: Material[]) => {
       //   ores.filter((ore: Material) => ore.name !== "coalOre");
@@ -72,22 +72,22 @@ const biomes: BiomesHolder = {
     },
     mushroomCave: {
       minDepth: 0.3,
-      airThreshold: 0.3, // slightly more open than normal caves
+      airThreshold: 0.4,
       wall: materials.mushroomEarth,
       accent: materials.mushroomCap,
-      accentChance: 0.65,
+      accentChance: 0.5,
     },
     crystalCave: {
       minDepth: 0.6,
-      airThreshold: 0.2, // tight, narrow passages
-      wall: materials.rock,
+      airThreshold: 0.3,
+      wall: materials.treeOre,
       accent: materials.crystal,
-      accentChance: 0.7,
+      accentChance: 0.25,
     },
   },
 };
 
-const undergroundPerlinNoise = perlin(horizontalBoxes, verticalBoxes, 6, 4);
+const undergroundPerlinNoise = perlin(horizontalBoxes, verticalBoxes, 2, 4);
 // High-frequency blend noises keep biome boundaries from being straight vertical/horizontal cuts
 const surfaceBlendNoise = perlin(
   horizontalBoxes,
@@ -108,14 +108,24 @@ export const getUndergroundBiome = (
   col: number,
   row: number
 ): UndergroundBiome => {
-  const base = undergroundPerlinNoise[col][row];
-  const blend = undergroundBlendNoise[col][row] * 0.25; // wiggle zone boundary by ±0.25
-  const val = base + blend;
+  const baseNoise = undergroundPerlinNoise[col][row];
+  const boundaryWiggle = undergroundBlendNoise[col][row] * 0.12; // Lower amplitude is safer
 
-  if (val < -0.35 && relDepth > biomes.underground.crystalCave.minDepth)
+  // Apply the wiggle directly inside the threshold evaluation
+  const adjustedDepth = relDepth + boundaryWiggle;
+
+  if (
+    baseNoise > 0.3 &&
+    adjustedDepth > biomes.underground.crystalCave.minDepth
+  ) {
     return biomes.underground.crystalCave;
-  if (val > 0.35 && relDepth > biomes.underground.mushroomCave.minDepth)
+  }
+  if (
+    baseNoise < -0.3 &&
+    adjustedDepth > biomes.underground.mushroomCave.minDepth
+  ) {
     return biomes.underground.mushroomCave;
+  }
   return biomes.underground.cave;
 };
 

@@ -1,5 +1,5 @@
 import { mapMat, addMat, scaleMat } from "../../math/matrix";
-import { perlin } from "../../math/perlin";
+import { linearizeNoise, normalizeNoise, perlin } from "../../math/perlin";
 import {
   blockSize,
   worldHeight,
@@ -47,20 +47,19 @@ export const caves = (): number[][] => {
   );
 
   return mapMat(blended, (val, column, row) => {
-    const normalised = (val + 1) / 2;
+    const normalised = normalizeNoise(val);
+    const linearized = linearizeNoise(normalised);
     const x = column * blockSize + xWorldOffset;
     const y = row * blockSize;
-    // Fades caves out at left/right/bottom world edges only.
-    // The top boundary is handled by surfaceRow in generateWorld, so we
-    // deliberately do NOT fade at y=0 — the old formula caused all surface
-    // blocks to receive a cave value of ~0, killing grass and snow.
-    const sideFade =
-      (1 - (x + worldWidth / 2) / worldWidth) *
-      ((x + worldWidth / 2) / worldWidth) *
-      4;
-    const bottomFade = Math.min(1, (worldHeight - y) / (worldHeight * 0.1));
-    const fadeBorder = sideFade * bottomFade;
-    return fadeBorder * normalised;
+
+    // const sideFade =
+    //   (1 - (x + worldWidth / 2) / worldWidth) *
+    //   ((x + worldWidth / 2) / worldWidth) *
+    //   4;
+    // const bottomFade = Math.min(1, (worldHeight - y) / (worldHeight * 0.1));
+    // const fadeBorder = sideFade * bottomFade;
+    const fadeBorder = 1;
+    return fadeBorder * linearized;
   });
 };
 

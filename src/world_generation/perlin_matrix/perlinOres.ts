@@ -1,6 +1,6 @@
 // perlinOres.ts
 
-import { perlin } from "../../math/perlin";
+import { perlin, perlinThreshold } from "../../math/perlin";
 import { Material, materials } from "../materials";
 import {
   horizontalBoxes,
@@ -103,7 +103,12 @@ export const generateOre = (
     if (
       relDepth > ore.minHeight &&
       relDepth < ore.maxHeight &&
-      ore.noiseMap[col][row] > 1 - ore.frequency * oreCoefficient
+      perlinThreshold(
+        ore.noiseMap[col][row],
+        1 - ore.frequency * oreCoefficient,
+        -0.7,
+        1
+      )
     ) {
       return ore;
     }
