@@ -54,15 +54,26 @@ import { horizontalBoxes, verticalBoxes, worldWidth } from "../perlinConstants";
 //   );
 
 // perlinSurface.ts
-export const surfaceLevel = 0.15;
-const surfaceBand = verticalBoxes * surfaceLevel;
+export const surfaceLevel = 0.2;
+
+const surfaceBand = 50;
 export const surfaceRows = (): number[] => {
-  const p1 = perlin(horizontalBoxes, 1, 4, 1);
+  const p1 = perlin(horizontalBoxes, 1, 40, 1);
   const p2 = perlin(horizontalBoxes, 1, 12, 1);
-  const p3 = perlin(horizontalBoxes, 1, 40, 1);
+  const p3 = perlin(horizontalBoxes, 1, 4, 1);
+
+  const p1Weight = 6;
+  const p2Weight = 12;
+  const p3Weight = 8;
+  const totalWeight = p1Weight + p2Weight + p3Weight;
 
   const heights = p1.map(([v1], col) => {
-    const combined = (v1 * 0.6 + p2[col][0] * 0.3 + p3[col][0] * 0.1 + 1) / 2;
+    const combined =
+      (v1 * (p1Weight / totalWeight) +
+        p2[col][0] * (p2Weight / totalWeight) +
+        p3[col][0] * (p3Weight / totalWeight) +
+        1) /
+      2;
 
     return combined * surfaceBand;
   });

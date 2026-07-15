@@ -52,10 +52,10 @@ export const renderChunk = (
   const sprites = Array.from(chunk.blocks)
     .map((block: number, index: number) => ({ block, index }))
     .filter(({ block }) => getMaterial(block).solid)
-    .map(({ block, index }) => {
-      const materialName = materialKeys[block];
+    .map(({ block: materialIdx, index }) => {
+      const materialName = materialKeys[materialIdx];
       if (!materialName) {
-        console.warn("Invalid block id — no material name found:", block);
+        console.warn("Invalid block id — no material name found:", materialIdx);
       }
       const texture = assets[materialName];
       if (!texture) {
@@ -63,7 +63,7 @@ export const renderChunk = (
           "No texture found for material:",
           materialName,
           "block id:",
-          block
+          materialIdx
         );
       }
       const sprite: Sprite = createSprite(
@@ -72,7 +72,7 @@ export const renderChunk = (
         1
       );
       if (!sprite) {
-        console.warn("createSprite returned undefined for block id:", block);
+        console.warn("createSprite returned undefined for block id:", materialIdx);
       }
       const [row, column] = idxToGrid(index);
       sprite.x = column * blockSize + blockSize / 2;

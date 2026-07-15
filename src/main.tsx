@@ -160,7 +160,7 @@ game.ready.then(async (app) => {
 
     //updateCooldown(dt, jumpStat.cooldown);
     if (keys["KeyW"]) {
-      if (jumpStat.cooldown > 0) return;
+      // if (jumpStat.cooldown > 0) return;
       move(player, "up", jumpStat.strength);
       // player.body.applyImpulse({ x: 0, y: -jumpStat.strength * 15 }, true);
 
@@ -187,11 +187,6 @@ game.ready.then(async (app) => {
     if (keys["KeyR"]) {
       resetPlayer(player);
     }
-    // if (keys["KeyH"]) {
-    //   const { openOverlay, toggleOverlay } = useScreen();
-    //   // in a click handler or keydown:
-    //   openOverlay("inventory");
-    // }
 
     // Player-world-interactions
     mineStat.cooldown = updateCooldown(dt, mineStat.cooldown);

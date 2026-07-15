@@ -42,7 +42,7 @@ export const materials: Record<string, Material> = {
     solid: true,
     durability: 100,
     png: "grass_texture.png",
-    drop: { item: "earth", amount: 5 },
+    drop: { item: "earth", amount: 1 },
   },
   snow: {
     name: "snow",
@@ -86,7 +86,7 @@ export const materials: Record<string, Material> = {
     resitution: 0.2,
     solid: true,
     durability: 800,
-    png: "tree_ore.png",
+    png: "ancient_tree_ore.png",
     drop: { item: "treeOre", amount: 16 },
   },
   coal: {
@@ -123,6 +123,33 @@ export const materials: Record<string, Material> = {
     solid: true,
     durability: 0,
     png: "pickaxe_sprite.png",
+  },
+  mushroomEarth: {
+    name: "mushroomEarth",
+    density: 0.001,
+    resitution: 0.2,
+    solid: true,
+    durability: 80,
+    png: "new_dirt_texture.png", // TODO: replace with mushroom earth texture
+    drop: { item: "earth", amount: 1 },
+  },
+  mushroomCap: {
+    name: "mushroomCap",
+    density: 0.0005,
+    resitution: 0.1,
+    solid: true,
+    durability: 40,
+    png: "coal_texture.png", // TODO: replace with mushroom cap texture
+    drop: { item: "coal", amount: 1 },
+  },
+  crystal: {
+    name: "crystal",
+    density: 0.002,
+    resitution: 0.5,
+    solid: true,
+    durability: 500,
+    png: "diamond_ore.png", // TODO: replace with crystal texture
+    drop: { item: "diamond", amount: 1 },
   },
 } as const;
 

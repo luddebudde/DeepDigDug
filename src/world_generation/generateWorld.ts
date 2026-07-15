@@ -7,87 +7,70 @@ import { caves } from "./perlin_matrix/perlinCaves";
 import { surfaceLevel, surfaceRows } from "./perlin_matrix/perlinSurface";
 import { Chunk, createChunk } from "./createChunk";
 import { zeros2 } from "../math/zeroes";
+import { horizontalBoxes, verticalBoxes } from "./perlinConstants";
 import {
-  cavesThresHold,
-  horizontalBoxes,
-  verticalBoxes,
-} from "./perlinConstants";
-import { biomeMap } from "./perlin_matrix/perlinBiomes";
-import {
-  ancientOreNoise,
-  coalNoise,
-  diamondNoise,
-  ironNoise,
-  treeOreNoise,
-} from "./perlin_matrix/perlinOres";
+  SurfaceBiome,
+  surfaceBiomeMap,
+  getUndergroundBiome,
+  undergroundAccentNoise,
+} from "./perlin_matrix/perlinBiomes";
+import { generateOre } from "./perlin_matrix/perlinOres";
 
 type MaterialKey = keyof typeof materials;
 
 const surfaceRow = surfaceRows(); // number[]   — one row index per column
 const cave = caves(); // number[][] — fade-border cave density (low = air)
-const biomes = biomeMap(); // Biome[]   — one biome per column
+const surfaceBiomes = surfaceBiomeMap(); // Biome[]   — one biome per column
 
 // terrain[col][row] = [materialKey, col, row]
 const terrain = mapMat(
   zeros2(horizontalBoxes, verticalBoxes),
   (_, col, row): [MaterialKey, number, number] => {
     const relDepth = (row - surfaceRow[col]) / verticalBoxes;
+    const surfaceBiome: SurfaceBiome = surfaceBiomes[col];
 
     // Layer 1: above surface → air
     if (row < surfaceRow[col]) return ["air", col, row];
 
     // Layer 2: cave hole → air.
-    // Skip within 5 blocks of the surface so caves never eat through the
-    // top layer (which also guarantees Layer 4 is always reachable).
-    const minCaveDepth = 5;
-    if (row > surfaceRow[col] + minCaveDepth && cave[col][row] < cavesThresHold)
+    // First X block is untouched
+    const safeSurfaceWidth = 15;
+    if (
+      row > surfaceRow[col] + safeSurfaceWidth &&
+      cave[col][row] < surfaceBiome.airThreshold
+    )
       return ["air", col, row];
 
-    // Layer 3: ores — deeper ores checked first
-    if (relDepth > 0.6 && diamondNoise[col][row] > 0.995)
-      return ["diamond", col, row];
-    if (relDepth > surfaceLevel * 2 && ironNoise[col][row] > 0.95)
-      return ["iron", col, row];
-    if (
-      relDepth > 0 &&
-      relDepth < surfaceLevel &&
-      treeOreNoise[col][row] > 0.95
-    )
-      return ["treeOre", col, row];
-    if (
-      relDepth > 0 &&
-      relDepth < surfaceLevel &&
-      ancientOreNoise[col][row] > 0.999
-    )
-      return ["treeOre", col, row];
-    if (
-      relDepth > surfaceLevel * 0.66 &&
-      relDepth < 0.6 &&
-      coalNoise[col][row] > 0.9
-    )
-      return ["coal", col, row];
-
-    // Layer 4: top surface block — colour depends on biome
-    if (row === surfaceRow[col]) {
-      const biome = biomes[col];
-      if (biome === "tundra") return ["snow", col, row];
-      // if (biome === "desert") return ["sand", col, row];
-      return ["grass", col, row];
+    // Generate ores
+    const activeOre = generateOre(relDepth, col, row, surfaceBiome.oreFilter);
+    if (activeOre !== undefined) {
+      return [activeOre.material.name, col, row];
     }
 
-    // Future "idea" for biome impacts!
-    // Layer 5: biome-aware subsurface
-    // const biome = biomes[col];
-    // if (biome === "tundra") {
-    //   // tundra: freezes deeper, ice layer near surface
-    //   if (relDepth < 0.1) return ["ice", col, row];
-    //   return [relDepth > 0.3 ? "rock" : "earth", col, row]; // rock starts shallower
-    // }
-    // // plains (default)
-    // return [relDepth > 0.4 ? "rock" : "earth", col, row];
+    // Checks if surface or cave
+    if (relDepth < surfaceLevel) {
+      // SURFACE
+      // Create grass
+      if (row === surfaceRow[col]) return [surfaceBiome.grass, col, row];
+      // Add dirt
+      return [surfaceBiome.earth, col, row];
+    } else {
+      // UNDERGROUND ZONE — select biome by 2D noise
+      const caveBiome = getUndergroundBiome(relDepth, col, row);
 
-    // Layer 5: subsurface — gets rockier with depth
-    return [relDepth > surfaceLevel ? "rock" : "earth", col, row];
+      // Each underground biome has its own cave openness
+      if (cave[col][row] < caveBiome.airThreshold) return ["air", col, row];
+
+      // Accent blocks (mushroom caps, crystals, iron veins...)
+      if (
+        caveBiome.accent !== undefined &&
+        caveBiome.accentChance !== undefined &&
+        undergroundAccentNoise[col][row] > caveBiome.accentChance
+      )
+        return [caveBiome.accent.name as MaterialKey, col, row];
+
+      return [caveBiome.wall.name as MaterialKey, col, row];
+    }
   }
 );
 

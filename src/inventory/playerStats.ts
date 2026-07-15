@@ -20,8 +20,10 @@ export type PlayerStats = {
 
 export const playerStats = {
   mining: {
-    power: 100,
-    speed: cooldownPerSecond,
+    // power: 100,
+    power: 1000,
+    // speed: cooldownPerSecond,
+    speed: cooldownPerSecond / 10,
     cooldown: 0,
   },
   movement: {
