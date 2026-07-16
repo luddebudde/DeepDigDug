@@ -1,4 +1,10 @@
-import { normalizeNoise, perlin } from "../../math/perlin";
+import {
+  normalizeNoise,
+  perfectUniformDistribution,
+  perlin,
+  perlinThreshold,
+} from "../../math/perlin";
+import { random } from "../../math/random";
 import { Material, materials } from "../materials";
 import {
   blockSize,
@@ -12,6 +18,8 @@ import { surfaceLevel } from "./perlinSurface";
 // perlinBiomes.ts
 export type SurfaceBiome = {
   name: string;
+  frequencyWeight: number;
+
   grass: string;
   earth: string;
   rock: string;
@@ -36,6 +44,8 @@ const biomes: BiomesHolder = {
   surface: {
     plains: {
       name: "plains",
+      frequencyWeight: 2,
+
       grass: "grass",
       earth: "earth",
       rock: "rock",
@@ -48,6 +58,8 @@ const biomes: BiomesHolder = {
     },
     tundra: {
       name: "tundra",
+      frequencyWeight: 1,
+
       grass: "snow",
       earth: "ice",
       rock: "iron",
@@ -59,6 +71,20 @@ const biomes: BiomesHolder = {
       ],
       // oreFilter: (ores: Material[]) => {
       //   ores.filter((ore: Material) => ore.name !== "treeOre");
+      // },
+    },
+    desert: {
+      name: "desert",
+      frequencyWeight: 0,
+
+      grass: "diamond",
+      earth: "rock",
+      rock: "treeOre",
+
+      airThreshold: 0.1,
+      oreFilter: [],
+      // oreFilter: (ores: Material[]) => {
+      //   ores.filter((ore: Material) => ore.name !== "coalOre");
       // },
     },
   },
@@ -74,14 +100,14 @@ const biomes: BiomesHolder = {
       minDepth: 0.3,
       airThreshold: 0.4,
       wall: materials.mushroomEarth,
-      accent: materials.mushroomCap,
+      accent: materials.mushroomOre,
       accentChance: 0.5,
     },
     crystalCave: {
       minDepth: 0.6,
       airThreshold: 0.3,
-      wall: materials.treeOre,
-      accent: materials.crystal,
+      wall: materials.obsidian,
+      accent: materials.amethyst,
       accentChance: 0.25,
     },
   },
@@ -129,13 +155,51 @@ export const getUndergroundBiome = (
   return biomes.underground.cave;
 };
 
-export const surfaceBiomeMap = (): SurfaceBiome[] => {
+const entries: [string, SurfaceBiome][] = Object.entries(biomes.surface);
+const totalWeight: number = entries.reduce(
+  (prevVal: number, [_, biome], i: number): number => {
+    return (prevVal += biome.frequencyWeight);
+  },
+  0
+);
+const biomeFreqWeight: [string, number][] = entries.map(([key, biome]) => {
+  return [key, biome.frequencyWeight / totalWeight];
+});
+
+export const surfaceBiomeMap = (): [SurfaceBiome, number, SurfaceBiome][] => {
   const p = perlin(horizontalBoxes, 1, worldWidth / (blockSize * 250), 1);
   return p.map(([val], col) => {
-    const blend = surfaceBlendNoise[col][0] * 0.3; // wiggle boundary for smooth transition
+    const blend = surfaceBlendNoise[col][0] * 0.3;
     const biomeVal = val + blend;
-    // if (biomeVal < -0.33) return biomes.surface.desert;
-    if (biomeVal < 0) return biomes.surface.tundra;
-    return biomes.surface.plains;
+    const normVal = perfectUniformDistribution(biomeVal);
+
+    let totalThreshold: number = 0;
+
+    for (let i = 0; i < entries.length; i++) {
+      const [key, frequency] = biomeFreqWeight[i];
+      totalThreshold += frequency;
+
+      if (normVal <= totalThreshold) {
+        const nextIndex = (i + 1) % entries.length;
+        const secondaryBiome = biomes.surface[entries[nextIndex][0]];
+
+        // Distance from this point to the upper edge of the current biome's range.
+        const distanceToEdge = totalThreshold - normVal;
+
+        // Full strength while comfortably inside the biome, fading linearly
+        // to 0 as normVal approaches the border with the next biome.
+        const biomeShiftMargin = 0.05;
+        const biomeStrength =
+          distanceToEdge >= biomeShiftMargin
+            ? 1
+            : Math.max(0, distanceToEdge / biomeShiftMargin);
+
+        return [biomes.surface[key], biomeStrength, secondaryBiome];
+      }
+    }
+
+    console.log("Could not find biome: resorted to plains/desert instead");
+
+    return [biomes.surface.desert, 0.5, biomes.surface.plains];
   });
 };

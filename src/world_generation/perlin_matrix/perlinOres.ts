@@ -66,14 +66,14 @@ const ancientOre: Ore = {
 };
 const coalOre: Ore = {
   material: materials.coal,
-  frequency: 0.1,
+  frequency: 0.04,
   minHeight: surfaceLevel * 0.66,
   maxHeight: 0.6,
   noiseMap: coalNoise,
 };
 const ironOre: Ore = {
   material: materials.iron,
-  frequency: 0.05,
+  frequency: 0.01,
   minHeight: surfaceLevel,
   maxHeight: 0.8,
   noiseMap: ironNoise,
@@ -105,9 +105,9 @@ export const generateOre = (
       relDepth < ore.maxHeight &&
       perlinThreshold(
         ore.noiseMap[col][row],
-        1 - ore.frequency * oreCoefficient,
-        -0.7,
-        1
+        1 - ore.frequency * oreCoefficient
+        // -0.7,
+        // 1
       )
     ) {
       return ore;

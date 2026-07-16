@@ -16,6 +16,7 @@ import {
 } from "./perlin_matrix/perlinBiomes";
 import { generateOre } from "./perlin_matrix/perlinOres";
 import { normalizeNoise, perlinThreshold } from "../math/perlin";
+import { random } from "../math/random";
 
 type MaterialKey = keyof typeof materials;
 
@@ -28,7 +29,14 @@ const terrain = mapMat(
   zeros2(horizontalBoxes, verticalBoxes),
   (_, col, row): [MaterialKey, number, number] => {
     const relDepth = (row - surfaceRow[col]) / verticalBoxes;
-    const surfaceBiome: SurfaceBiome = surfaceBiomes[col];
+    const [primSurfaceBiome, surfaceBiomeStrength, secSurfaceBiome]: [
+      SurfaceBiome,
+      number,
+      SurfaceBiome,
+    ] = surfaceBiomes[col];
+
+    const activeSurfaceBiome: SurfaceBiome =
+      random(0, 1) < surfaceBiomeStrength ? primSurfaceBiome : secSurfaceBiome;
 
     // Layer 1: above surface → air
     if (row < surfaceRow[col]) return ["air", col, row];
@@ -40,13 +48,19 @@ const terrain = mapMat(
     if (
       relDepth < surfaceLevel &&
       row > surfaceRow[col] + safeSurfaceWidth &&
-      normCaveVal < surfaceBiome.airThreshold
+      normCaveVal < primSurfaceBiome.airThreshold
     )
       return ["air", col, row];
 
     // Generate ores
     // TODO: Make them only spawn on rock, and not just in the air
-    const activeOre = generateOre(relDepth, col, row, surfaceBiome.oreFilter);
+    // TODO: Ores in caves should not be affected (atleast fully)
+    const activeOre = generateOre(
+      relDepth,
+      col,
+      row,
+      primSurfaceBiome.oreFilter
+    );
     if (activeOre !== undefined) {
       if (relDepth > surfaceLevel) {
         const caveBiome = getUndergroundBiome(relDepth, col, row);
@@ -77,9 +91,9 @@ const terrain = mapMat(
     }
 
     // SURFACE
-    if (row === surfaceRow[col]) return [surfaceBiome.grass, col, row];
+    if (row === surfaceRow[col]) return [activeSurfaceBiome.grass, col, row];
 
-    return [surfaceBiome.earth, col, row];
+    return [activeSurfaceBiome.earth, col, row];
   }
 );
 

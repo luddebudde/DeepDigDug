@@ -36,7 +36,7 @@ import { cooldownPerSecond, updateCooldown } from "./inventory/updateCooldown";
 import { inventory, notifyInventoryChanged, Slot } from "./inventory/inventory";
 import { move } from "./move";
 import { useScreen } from "./screens/ScreenContext";
-import { getMaterialFromItem } from "./inventory/items";
+import { getMaterialFromItem, itemPlaceholds } from "./inventory/items";
 import { removeFromInventory } from "./inventory/addToInventory";
 import { worldHeight } from "./world_generation/perlinConstants";
 
@@ -160,7 +160,7 @@ game.ready.then(async (app) => {
 
     //updateCooldown(dt, jumpStat.cooldown);
     if (keys["KeyW"]) {
-      // if (jumpStat.cooldown > 0) return;
+      if (jumpStat.cooldown > 0) return;
       move(player, "up", jumpStat.strength);
       // player.body.applyImpulse({ x: 0, y: -jumpStat.strength * 15 }, true);
 
@@ -186,6 +186,16 @@ game.ready.then(async (app) => {
     }
     if (keys["KeyR"]) {
       resetPlayer(player);
+    }
+
+    // REMOVE THIS; TEMPORARY FOR GAME TESTERS
+    if (keys["KeyL"]) {
+      const a = inventory.content[inventory.selectedHotbarSlot];
+      if (a === undefined) return;
+      if (a.item === itemPlaceholds.iron && a.amount >= a.maxStackSize) {
+        playerStats.mining.power = 200;
+        playerStats.mining.speed = 0.33;
+      }
     }
 
     // Player-world-interactions

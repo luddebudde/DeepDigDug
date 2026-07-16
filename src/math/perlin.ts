@@ -76,16 +76,15 @@ export const normalizeNoise = (
 };
 
 // "If noiseValue is larger than threshold, then true "
+// "If noiseValue is larger than threshold, then true"
 export const perlinThreshold = (
   noiseValue: number,
-  threshold: number,
-  expectedMin: number = -0.7,
-  expectedMax: number = 0.7
-) => {
-  const normValue = normalizeNoise(noiseValue, expectedMin, expectedMax);
-  const linearized = linearizeNoise(normValue);
+  threshold: number
+): boolean => {
+  // This maps the noise value to its exact percentile (0.0 to 1.0)
+  const uniformValue = perfectUniformDistribution(noiseValue);
 
-  return linearized > threshold;
+  return uniformValue > threshold;
 };
 
 /**
@@ -96,4 +95,33 @@ export const linearizeNoise = (val: number): number => {
   // A standard smoothstep curve redistributes the tight middle cluster
   // out toward the edges, flattening the bell-curve rate of change.
   return val * val * (3 - 2 * val);
+};
+
+/**
+ * Perfectly flattens the Perlin bell-curve distribution.
+ * Maps any raw Perlin noise value (-0.7 to 0.7) to a flat,
+ * uniform 0.0 to 1.0 scale where:
+ * - 0.1 represents exactly the bottom 10% of values.
+ * - 0.5 represents exactly the median (50%).
+ * - 0.9 represents exactly the top 10% of values.
+ */
+export const perfectUniformDistribution = (noiseValue: number): number => {
+  const sigma = 0.23;
+  const x = noiseValue / (sigma * Math.sqrt(2));
+
+  const t = 1.0 / (1.0 + 0.3275911 * Math.abs(x));
+  const a1 = 0.254829592;
+  const a2 = -0.284496736;
+  const a3 = 1.421413741;
+  const a4 = -1.453152027;
+  const a5 = 1.061405429;
+
+  // FIXED: Expanded the polynomial algebraically so it can't fail
+  const polynomial = a1 + t * (a2 + t * (a3 + t * (a4 + t * a5)));
+  const erf = 1.0 - polynomial * t * Math.exp(-x * x);
+
+  const sign = x < 0 ? -1 : 1;
+  const CDF = 0.5 * (1.0 + sign * erf);
+
+  return Math.max(0.0, Math.min(1.0, CDF));
 };

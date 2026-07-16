@@ -7,7 +7,8 @@ export const addToInventory = (materialId: Integer) => {
   const material = getMaterial(materialId);
   if (material.drop === undefined) {
     console.log(
-      "item does not exist in item format; failed to find material.drop"
+      "item does not exist in item format; failed to find material.drop:",
+      materialId
     );
 
     return;

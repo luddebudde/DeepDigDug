@@ -1,4 +1,6 @@
 export const blockSize = 75;
+// export const blockSize = 25;
+
 export const chunkRelSize = 16;
 export const chunkSize = chunkRelSize * blockSize;
 

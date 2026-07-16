@@ -129,27 +129,36 @@ export const materials: Record<string, Material> = {
     density: 0.001,
     resitution: 0.2,
     solid: true,
-    durability: 80,
-    png: "new_dirt_texture.png", // TODO: replace with mushroom earth texture
-    drop: { item: "earth", amount: 1 },
+    durability: 40,
+    png: "mushroom_earth.png", // TODO: replace with mushroom earth texture
+    drop: { item: "mushroomEarth", amount: 1 },
   },
-  mushroomCap: {
-    name: "mushroomCap",
+  mushroomOre: {
+    name: "mushroomOre",
     density: 0.0005,
     resitution: 0.1,
     solid: true,
-    durability: 40,
-    png: "coal_texture.png", // TODO: replace with mushroom cap texture
-    drop: { item: "coal", amount: 1 },
+    durability: 200,
+    png: "mushroom_ore.png", // TODO: replace with mushroom cap texture
+    drop: { item: "mushroomOre", amount: 1 },
   },
-  crystal: {
-    name: "crystal",
+  obsidian: {
+    name: "obsidian",
     density: 0.002,
     resitution: 0.5,
     solid: true,
-    durability: 500,
-    png: "diamond_ore.png", // TODO: replace with crystal texture
-    drop: { item: "diamond", amount: 1 },
+    durability: 800,
+    png: "obsidian_texture.png", // TODO: replace with crystal texture
+    drop: { item: "obsidian", amount: 1 },
+  },
+  amethyst: {
+    name: "amethyst",
+    density: 0.002,
+    resitution: 0.5,
+    solid: true,
+    durability: 250,
+    png: "amethyst_ore.png", // TODO: replace with crystal texture
+    drop: { item: "amethyst", amount: 1 },
   },
 } as const;
 

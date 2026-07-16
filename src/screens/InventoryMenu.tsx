@@ -54,9 +54,9 @@ export const InventoryMenu = () => {
                 style={{
                   ...slotStyle,
 
-                  cursor: slot?.item.png
-                    ? `url(${slot.item.png}) 16 16, auto`
-                    : "auto",
+                  // cursor: slot?.item.png
+                  //   ? `url(${slot.item.png}) 16 16, auto`
+                  //   : "auto",
 
                   minWidth: slotSize,
                   minHeight: slotSize,
