@@ -1,5 +1,11 @@
-import { mapMat, addMat, scaleMat } from "../../math/matrix";
-import { linearizeNoise, normalizeNoise, perlin } from "../../math/perlin";
+import {
+  linearizeNoise,
+  normalizeNoise,
+  perlin,
+  mapMat,
+  addMat,
+  scaleMat,
+} from "@repo/math";
 import {
   blockSize,
   worldHeight,

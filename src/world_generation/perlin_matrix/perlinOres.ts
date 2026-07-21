@@ -1,6 +1,6 @@
 // perlinOres.ts
 
-import { perlin, perlinThreshold } from "../../math/perlin";
+import { perlin, perlinThreshold } from "@repo/math";
 import { Material, materials } from "../materials";
 import {
   horizontalBoxes,

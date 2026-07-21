@@ -3,8 +3,7 @@ import {
   perfectUniformDistribution,
   perlin,
   perlinThreshold,
-} from "../../math/perlin";
-import { random } from "../../math/random";
+} from "@repo/math";
 import { Material, materials } from "../materials";
 import {
   blockSize,
@@ -183,16 +182,9 @@ export const surfaceBiomeMap = (): [SurfaceBiome, number, SurfaceBiome][] => {
         const nextIndex = (i + 1) % entries.length;
         const secondaryBiome = biomes.surface[entries[nextIndex][0]];
 
-        // Distance from this point to the upper edge of the current biome's range.
-        const distanceToEdge = totalThreshold - normVal;
-
-        // Full strength while comfortably inside the biome, fading linearly
-        // to 0 as normVal approaches the border with the next biome.
-        const biomeShiftMargin = 0.05;
+        const biomeMargin = 0.1;
         const biomeStrength =
-          distanceToEdge >= biomeShiftMargin
-            ? 1
-            : Math.max(0, distanceToEdge / biomeShiftMargin);
+          1 - (normVal + biomeMargin - totalThreshold) / biomeMargin;
 
         return [biomes.surface[key], biomeStrength, secondaryBiome];
       }

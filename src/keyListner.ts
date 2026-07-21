@@ -8,7 +8,7 @@ import {
   origo,
   sub,
   Vec2,
-} from "./math/vec";
+} from "@repo/math";
 import { Dimensions, Object } from "./createCube";
 import { Camera } from "./pixi/renderChunk";
 

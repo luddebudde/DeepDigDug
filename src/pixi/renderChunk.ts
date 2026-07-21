@@ -7,7 +7,7 @@ import {
 } from "../world_generation/perlinConstants";
 import { createSprite } from "./createSprite";
 import { findBorderingChunks, idxToGrid } from "../findWorldBlocks";
-import { Vec2 } from "../math/vec";
+import { Vec2 } from "@repo/math";
 import RAPIER from "@dimforge/rapier2d";
 import {
   assets,

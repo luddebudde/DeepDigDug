@@ -1,14 +1,12 @@
-import RAPIER, { PhysicsPipeline } from "@dimforge/rapier2d";
+import RAPIER from "@dimforge/rapier2d";
 import {
   Assets,
   Container,
   Graphics,
-  Rectangle,
   Sprite,
   Texture,
 } from "pixi.js";
-import { Vec2 } from "./math/vec";
-
+import { Vec2 } from "@repo/math";
 import { createBody } from "./rapier/createBody";
 import { createSprite } from "./pixi/createSprite";
 

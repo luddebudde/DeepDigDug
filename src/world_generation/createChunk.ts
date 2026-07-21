@@ -1,7 +1,5 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Container, RenderTexture, Sprite, Texture } from "pixi.js";
-import { Material } from "./materials";
-import { Vec2 } from "../math/vec";
+import { Container, RenderTexture, Sprite } from "pixi.js";
 import { chunkRelSize, chunkSize } from "./perlinConstants";
 import { gridToIdx, Integer } from "../findWorldBlocks";
 

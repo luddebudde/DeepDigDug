@@ -1,7 +1,7 @@
 import { changeBlock, findBlock, findChunk, Integer } from "./findWorldBlocks";
 import { addToInventory } from "./inventory/addToInventory";
 import { PlayerStats } from "./inventory/playerStats";
-import { Vec2 } from "./math/vec";
+import { Vec2 } from "@repo/math";
 import { Chunk } from "./world_generation/createChunk";
 import { getMaterial } from "./world_generation/materials";
 

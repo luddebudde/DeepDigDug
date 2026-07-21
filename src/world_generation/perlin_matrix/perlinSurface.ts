@@ -1,4 +1,4 @@
-import { perlin } from "../../math/perlin";
+import { perlin } from "@repo/math";
 import { horizontalBoxes, verticalBoxes, worldWidth } from "../perlinConstants";
 
 // --- OLD multi-octave surface variables (used by the commented-out surface()) ---

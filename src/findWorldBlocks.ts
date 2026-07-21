@@ -1,6 +1,6 @@
 import { Chunk } from "./world_generation/createChunk";
-import { origo, Vec2 } from "./math/vec";
-import { zeros2 } from "./math/zeroes";
+
+import { zeros2, Vec2 } from "@repo/math";
 import {
   blockSize,
   chunkRelSize as relChunkSize,

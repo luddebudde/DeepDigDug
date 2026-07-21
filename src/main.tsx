@@ -29,7 +29,7 @@ import {
   Integer,
 } from "./findWorldBlocks";
 import { getMaterial, getMaterialId } from "./world_generation/materials";
-import { origo } from "./math/vec";
+import { origo } from "@repo/math";
 import { mineBlock } from "./mineBlock";
 import { playerStats } from "./inventory/playerStats";
 import { cooldownPerSecond, updateCooldown } from "./inventory/updateCooldown";
@@ -160,7 +160,7 @@ game.ready.then(async (app) => {
 
     //updateCooldown(dt, jumpStat.cooldown);
     if (keys["KeyW"]) {
-      if (jumpStat.cooldown > 0) return;
+      // if (jumpStat.cooldown > 0) return;
       move(player, "up", jumpStat.strength);
       // player.body.applyImpulse({ x: 0, y: -jumpStat.strength * 15 }, true);
 
@@ -203,7 +203,7 @@ game.ready.then(async (app) => {
 
     // Add a max length away from player
     if (mouseButtons["Left"]) {
-      if (mineStat.cooldown > 0) return;
+      // if (mineStat.cooldown > 0) return;
       mineBlock(chunks, mouseWorldPos, playerStats);
       mineStat.cooldown = mineStat.speed;
     }

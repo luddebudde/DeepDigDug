@@ -2,11 +2,16 @@ import RAPIER from "@dimforge/rapier2d";
 import { Application, Container } from "pixi.js";
 import { createCube, Object } from "../createCube";
 import { getMaterialId, materials } from "./materials";
-import { mapMat } from "../math/matrix";
 import { caves } from "./perlin_matrix/perlinCaves";
 import { surfaceLevel, surfaceRows } from "./perlin_matrix/perlinSurface";
 import { Chunk, createChunk } from "./createChunk";
-import { zeros2 } from "../math/zeroes";
+import {
+  random,
+  mapMat,
+  zeros2,
+  normalizeNoise,
+  perlinThreshold,
+} from "@repo/math";
 import { horizontalBoxes, verticalBoxes } from "./perlinConstants";
 import {
   SurfaceBiome,
@@ -15,8 +20,6 @@ import {
   undergroundAccentNoise,
 } from "./perlin_matrix/perlinBiomes";
 import { generateOre } from "./perlin_matrix/perlinOres";
-import { normalizeNoise, perlinThreshold } from "../math/perlin";
-import { random } from "../math/random";
 
 type MaterialKey = keyof typeof materials;
 
@@ -53,8 +56,9 @@ const terrain = mapMat(
       return ["air", col, row];
 
     // Generate ores
-    // TODO: Make them only spawn on rock, and not just in the air
+    // TODO: Make them only spawn on rock, and not just in the air (Fixed, kinda)
     // TODO: Ores in caves should not be affected (atleast fully)
+    // Make ore filters filter away ores in both biomes
     const activeOre = generateOre(
       relDepth,
       col,
@@ -72,11 +76,11 @@ const terrain = mapMat(
 
     // Checks if surface or cave
     if (relDepth > surfaceLevel) {
-      // UNDERGROUND ZONE — select biome by 2D noise
+      // UNDERGROUND
       const caveBiome = getUndergroundBiome(relDepth, col, row);
 
       if (normCaveVal < caveBiome.airThreshold) return ["air", col, row];
-      // Accent blocks (mushroom caps, crystals, iron veins...)
+      // Accent blocks
       if (
         caveBiome.accent !== undefined &&
         caveBiome.accentChance !== undefined &&
@@ -118,7 +122,7 @@ export const generateWorld = async (
     objects,
     "player",
     {
-      pos: { x: 0, y: 0 },
+      pos: { x: 0, y: 1400 },
       width: 50,
       height: 50,
       density: 0.001,

@@ -1,6 +1,5 @@
 import { Object } from "./createCube";
-import { playerStats } from "./inventory/playerStats";
-import { multVar, Vec2 } from "./math/vec";
+import { multVar, Vec2 } from "@repo/math";
 
 const directionMod: Record<string, Vec2> = {
   up: { x: 0, y: -1 },

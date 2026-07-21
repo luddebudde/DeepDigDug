@@ -160,6 +160,14 @@ export const materials: Record<string, Material> = {
     png: "amethyst_ore.png", // TODO: replace with crystal texture
     drop: { item: "amethyst", amount: 1 },
   },
+  water: {
+    name: "water",
+    density: 0.002,
+    resitution: 0.5,
+    solid: true,
+    durability: 250,
+    png: "dirt_texture.png", // TODO: replace with crystal texture
+  },
 } as const;
 
 export const materialKeys = Object.keys(
