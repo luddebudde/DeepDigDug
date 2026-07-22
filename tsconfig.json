@@ -9,7 +9,15 @@
     "noEmit": true,
     "skipLibCheck": true,
     "types": [],
-    "noUncheckedIndexedAccess": false
+    "noUncheckedIndexedAccess": false,
+    "allowImportingTsExtensions": true
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": [
+    "src",
+    "packages/world-generation/src/world_description",
+    "packages/world-generation/src/perlinConstants.ts",
+    "packages/world-generation/src/materials.ts",
+    "packages/world-generation/src/items.ts",
+    "packages/world-generation/src/perlin_matrix"
+  ]
 }

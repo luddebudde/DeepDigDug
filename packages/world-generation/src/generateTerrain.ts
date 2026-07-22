@@ -1,20 +1,10 @@
-import RAPIER from "@dimforge/rapier2d";
-import { Application, Container } from "pixi.js";
-import { createCube, Object } from "../createCube";
-import { getMaterialId, materials } from "./materials";
+import { materials } from "./materials";
 import { caves } from "./perlin_matrix/perlinCaves";
 import { surfaceLevel, surfaceRows } from "./perlin_matrix/perlinSurface";
-import { Chunk, createChunk } from "./createChunk";
-import {
-  random,
-  mapMat,
-  zeros2,
-  normalizeNoise,
-  perlinThreshold,
-} from "@repo/math";
+import { random, mapMat, zeros2, perlinThreshold } from "@repo/math";
 import { horizontalBoxes, verticalBoxes } from "./perlinConstants";
 import {
-  SurfaceBiome,
+  type SurfaceBiome,
   surfaceBiomeMap,
   getUndergroundBiome,
   undergroundAccentNoise,
@@ -28,7 +18,7 @@ const cave = caves(); // number[][] — fade-border cave density (low = air)
 const surfaceBiomes = surfaceBiomeMap(); // Biome[]   — one biome per column
 
 // terrain[col][row] = [materialKey, col, row]
-const terrain = mapMat(
+export const terrain = mapMat(
   zeros2(horizontalBoxes, verticalBoxes),
   (_, col, row): [MaterialKey, number, number] => {
     const relDepth = (row - surfaceRow[col]) / verticalBoxes;
@@ -100,39 +90,3 @@ const terrain = mapMat(
     return [activeSurfaceBiome.earth, col, row];
   }
 );
-
-export const generateWorld = async (
-  app: Application,
-  worldContainer: Container,
-  rapier: RAPIER.World,
-  objects: Object[]
-): Promise<[Object, Chunk[][]]> => {
-  const chunks: Chunk[][] = [[]];
-
-  terrain.flat().forEach(([materialKey, column, row]) => {
-    const materialId = getMaterialId(materialKey);
-    createChunk(worldContainer, rapier, chunks, { row, column }, materialId);
-  });
-
-  console.log(chunks);
-
-  const player = await createCube(
-    worldContainer,
-    rapier,
-    objects,
-    "player",
-    {
-      pos: { x: 0, y: 1400 },
-      width: 50,
-      height: 50,
-      density: 0.001,
-      modes: {
-        sensor: false,
-        sleep: false,
-      },
-    },
-    { pixiUrl: "coal_texture.png", zIndex: 5 }
-  );
-
-  return [player, chunks];
-};

@@ -1,21 +1,19 @@
 import { createRoot } from "react-dom/client";
 import { ScreenHandler } from "./ScreenHandler";
 import { game } from "./Game";
-import { Container, Graphics, Sprite } from "pixi.js";
+import { Container } from "pixi.js";
 import RAPIER from "@dimforge/rapier2d";
 import {
   changeMouseWorldPos,
   keys,
   mouseButtons,
-  mousePos,
   mouseWorldPos,
   setupKeyboardListeners,
   setupMouseListeners,
 } from "./keyListner";
 import { runEventQueueCheck } from "./rapier/eventQueueHandler";
-import { generateWorld } from "./world_generation/generateWorld";
-import { Chunk } from "./world_generation/createChunk";
-import { Dimensions, Object } from "./createCube";
+import { generateWorld } from "./generateWorld";
+import { createCube, Dimensions, Object } from "./createCube";
 import {
   Camera,
   changeChunksInRender,
@@ -26,19 +24,20 @@ import {
   findBlock,
   findBorderingBlocks,
   findChunk,
-  Integer,
 } from "./findWorldBlocks";
-import { getMaterial, getMaterialId } from "./world_generation/materials";
+import {
+  getMaterial,
+  getMaterialFromItem,
+  itemPlaceholds,
+} from "../packages/world-generation/src/materials";
 import { origo } from "@repo/math";
 import { mineBlock } from "./mineBlock";
 import { playerStats } from "./inventory/playerStats";
-import { cooldownPerSecond, updateCooldown } from "./inventory/updateCooldown";
-import { inventory, notifyInventoryChanged, Slot } from "./inventory/inventory";
+import { updateCooldown } from "./inventory/updateCooldown";
+import { inventory, notifyInventoryChanged } from "./inventory/inventory";
 import { move } from "./move";
-import { useScreen } from "./screens/ScreenContext";
-import { getMaterialFromItem, itemPlaceholds } from "./inventory/items";
 import { removeFromInventory } from "./inventory/addToInventory";
-import { worldHeight } from "./world_generation/perlinConstants";
+import { worldHeight } from "../packages/world-generation/src/perlinConstants";
 
 // Refactor segments of code to seperate files
 // Clear up some code
@@ -92,11 +91,23 @@ game.ready.then(async (app) => {
 
   app.stage.addChild(worldContainer);
 
-  const [player, chunks] = await generateWorld(
-    app,
+  const chunks = await generateWorld();
+  const player = await createCube(
     worldContainer,
     rapierWorld,
-    wakeObjects
+    wakeObjects,
+    "player",
+    {
+      pos: { x: 0, y: 1400 },
+      width: 50,
+      height: 50,
+      density: 0.001,
+      modes: {
+        sensor: false,
+        sleep: false,
+      },
+    },
+    { pixiUrl: "coal_texture.png", zIndex: 5 }
   );
 
   const camera: Camera = {

@@ -1,15 +1,11 @@
-import { Container } from "pixi.js";
 import {
   add,
-  addVar,
-  div,
-  divVar,
   multVar,
   origo,
   sub,
   Vec2,
 } from "@repo/math";
-import { Dimensions, Object } from "./createCube";
+import { Dimensions } from "./createCube";
 import { Camera } from "./pixi/renderChunk";
 
 export const keys: Record<string, boolean> = {};

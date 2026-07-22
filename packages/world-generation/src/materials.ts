@@ -1,6 +1,4 @@
-import { Assets, Texture } from "pixi.js";
-import { itemPlaceholds } from "../inventory/items";
-import { Integer } from "../findWorldBlocks";
+import { type Integer } from "@repo/math/src/random";
 
 export type Material = {
   name: string;
@@ -166,7 +164,7 @@ export const materials: Record<string, Material> = {
     resitution: 0.5,
     solid: true,
     durability: 250,
-    png: "dirt_texture.png", // TODO: replace with crystal texture
+    png: "dirt_texture.png", // TODO: replace png
   },
 } as const;
 
@@ -175,18 +173,6 @@ export const materialKeys = Object.keys(
 ) as (keyof typeof materials)[];
 const materialIdMap = new Map<string, number>(
   materialKeys.map((key, index) => [key, index])
-);
-
-type TextureMap = Record<string, Texture>;
-
-export const assets: TextureMap = Object.fromEntries(
-  await Promise.all(
-    materialKeys.map(async (key) => {
-      const mat = materials[key];
-      const texture = mat.solid ? await Assets.load(mat.png) : Texture.EMPTY;
-      return [key, texture] as [string, Texture];
-    })
-  )
 );
 
 export const getMaterialId = (key: keyof typeof materials): number => {
@@ -202,5 +188,143 @@ export const getMaterial = (int: Integer): Material => {
   if (key === undefined) {
     throw new Error(`Unknown material id: ${int}`);
   }
+  return materials[key];
+};
+
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+// GREAT LINE OF SEGREGATION
+
+export type ItemPlacehold = {
+  name: string;
+  stackSize: number;
+  png: string;
+  placeable: boolean;
+  opacity?: number;
+};
+
+// CHANGE MATERIAL NAMES
+export const itemPlaceholds: Record<string, ItemPlacehold> = {
+  earth: {
+    // Original: 256
+    name: "Earth",
+    stackSize: 256,
+    placeable: true,
+    png: materials.earth.png,
+  },
+  rock: {
+    name: "Rock",
+    stackSize: 256,
+    placeable: true,
+    png: materials.rock.png,
+  },
+  treeOre: {
+    name: "Tree ore",
+    stackSize: 128,
+    placeable: true,
+    png: materials.treeOre.png,
+  },
+  coal: {
+    name: "Coal",
+    stackSize: 64,
+    placeable: true,
+    png: materials.coal.png,
+  },
+  iron: {
+    name: "Iron",
+    stackSize: 64,
+    placeable: true,
+    png: materials.iron.png,
+  },
+  diamond: {
+    name: "Diamond",
+    stackSize: 16,
+    placeable: true,
+    png: materials.diamond.png,
+  },
+  snow: {
+    name: "Snow",
+    stackSize: 256,
+    placeable: true,
+    png: materials.snow.png,
+  },
+  ice: {
+    name: "Ice",
+    stackSize: 64,
+    placeable: true,
+    png: materials.ice.png,
+  },
+  mushroomEarth: {
+    name: "mushroomEarth",
+    stackSize: 256,
+    placeable: true,
+    png: materials.mushroomEarth.png,
+  },
+  mushroomOre: {
+    name: "mushroomOre",
+    stackSize: 64,
+    placeable: true,
+    png: materials.mushroomOre.png,
+  },
+  amethyst: {
+    name: "amethyst",
+    stackSize: 32,
+    placeable: true,
+    png: materials.amethyst.png,
+  },
+  obsidian: {
+    name: "obsidian",
+    stackSize: 256,
+    placeable: true,
+    png: materials.obsidian.png,
+  },
+  //   grass: {
+  //     color: (val: number) => rgb(val * 0, val * 1, val * 0),
+  //     density: 0.0005,
+  //     resitution: 0.2,
+  //     solid: true,
+  //     png: "ladder_sprite.png",
+  //   },
+  //   snow: {
+  //     color: (val: number) => rgb(0.9, 0.9, 0.9),
+  //     density: 0.0005,
+  //     resitution: 0.2,
+  //     solid: true,
+  //     png: "diamond_ore.png",
+  //   },
+} as const;
+
+export const itemKeys = Object.keys(
+  itemPlaceholds
+) as (keyof typeof itemPlaceholds)[];
+
+export const getItemlId = (key: keyof typeof itemPlaceholds): number => {
+  const id: number = materialIdMap.get(key)!;
+
+  return id;
+};
+
+export const getItem = (id: number): ItemPlacehold => {
+  const key = itemKeys[id];
+  if (key === undefined) {
+    throw new Error(`Unknown material id: ${id}`);
+  }
+  return itemPlaceholds[key];
+};
+export const getMaterialFromItem = (
+  item: ItemPlacehold
+): Material | undefined => {
+  const key = itemKeys.find((k) => itemPlaceholds[k] === item);
+  if (key === undefined) return undefined;
   return materials[key];
 };

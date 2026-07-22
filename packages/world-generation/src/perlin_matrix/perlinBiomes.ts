@@ -1,13 +1,10 @@
 import {
-  normalizeNoise,
   perfectUniformDistribution,
   perlin,
-  perlinThreshold,
 } from "@repo/math";
-import { Material, materials } from "../materials";
+import { type Material, materials } from "../materials";
 import {
   blockSize,
-  cavesThresHold,
   horizontalBoxes,
   verticalBoxes,
   worldWidth,
