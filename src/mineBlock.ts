@@ -1,9 +1,10 @@
-import { changeBlock, findBlock, findChunk, Integer } from "./findWorldBlocks";
+import { changeBlock, findBlock, findChunk } from "./findWorldBlocks";
+import { Integer } from "@repo/math/src/random";
 import { addToInventory } from "./inventory/addToInventory";
 import { PlayerStats } from "./inventory/playerStats";
 import { Vec2 } from "@repo/math";
-import { Chunk } from "./world_generation/createChunk";
-import { getMaterial } from "./world_generation/materials";
+import { Chunk } from "./createChunk";
+import { getMaterial } from "../packages/world-generation/src/materials";
 
 // Refactor to another file
 export const getOrCreate = <T>(

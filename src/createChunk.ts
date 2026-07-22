@@ -1,7 +1,11 @@
 import RAPIER from "@dimforge/rapier2d";
-import { Container, RenderTexture, Sprite } from "pixi.js";
-import { chunkRelSize, chunkSize } from "./perlinConstants";
-import { gridToIdx, Integer } from "../findWorldBlocks";
+import { RenderTexture, Sprite } from "pixi.js";
+import {
+  chunkRelSize,
+  chunkSize,
+} from "../packages/world-generation/src/perlinConstants";
+import { gridToIdx } from "./findWorldBlocks";
+import { Integer } from "@repo/math/src/random";
 
 export type DamagedBlock = {
   idx: number;
@@ -27,8 +31,6 @@ export type Chunk = {
 export type Mesh = { row: number; column: number };
 
 export const createChunk = (
-  worldContainer: Container,
-  rapierWorld: RAPIER.World,
   chunks: Chunk[][],
   mesh: Mesh,
   materialId: number

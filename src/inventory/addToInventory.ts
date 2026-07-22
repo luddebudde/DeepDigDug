@@ -1,7 +1,6 @@
-import { Integer } from "../findWorldBlocks";
-import { getMaterial } from "../world_generation/materials";
+import { Integer } from "@repo/math/src/random";
+import { getItem, getItemlId, getMaterial } from "../../packages/world-generation/src/materials";
 import { inventory, notifyInventoryChanged, Slot } from "./inventory";
-import { getItem, getItemlId } from "./items";
 
 export const addToInventory = (materialId: Integer) => {
   const material = getMaterial(materialId);

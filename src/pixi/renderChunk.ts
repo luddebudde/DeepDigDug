@@ -1,19 +1,26 @@
-import { Application, Container, RenderTexture, Sprite } from "pixi.js";
-import { Chunk } from "../world_generation/createChunk";
+import {
+  Application,
+  Assets,
+  Container,
+  RenderTexture,
+  Sprite,
+  Texture,
+} from "pixi.js";
+import { Chunk } from "../createChunk";
 import {
   blockSize,
   chunkRelSize,
   xWorldOffset,
-} from "../world_generation/perlinConstants";
+} from "../../packages/world-generation/src/perlinConstants";
 import { createSprite } from "./createSprite";
 import { findBorderingChunks, idxToGrid } from "../findWorldBlocks";
 import { Vec2 } from "@repo/math";
 import RAPIER from "@dimforge/rapier2d";
 import {
-  assets,
   getMaterial,
   materialKeys,
-} from "../world_generation/materials";
+  materials,
+} from "../../packages/world-generation/src/materials";
 
 export type Camera = {
   // Center
@@ -23,6 +30,17 @@ export type Camera = {
   orgWidth: number;
   orgHeight: number;
 };
+
+type TextureMap = Record<string, Texture>;
+const assets: TextureMap = Object.fromEntries(
+  await Promise.all(
+    materialKeys.map(async (key) => {
+      const mat = materials[key];
+      const texture = mat.solid ? await Assets.load(mat.png) : Texture.EMPTY;
+      return [key, texture] as [string, Texture];
+    })
+  )
+);
 
 export const reRenderChunk = (
   app: Application,
@@ -72,7 +90,10 @@ export const renderChunk = (
         1
       );
       if (!sprite) {
-        console.warn("createSprite returned undefined for block id:", materialIdx);
+        console.warn(
+          "createSprite returned undefined for block id:",
+          materialIdx
+        );
       }
       const [row, column] = idxToGrid(index);
       sprite.x = column * blockSize + blockSize / 2;

@@ -1,4 +1,5 @@
-import { ItemPlacehold } from "./items";
+import { ItemPlacehold } from "@repo/world-generation";
+
 
 export type Inventory = {
   hotbarSize: number;

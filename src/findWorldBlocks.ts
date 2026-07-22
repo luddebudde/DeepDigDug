@@ -1,5 +1,4 @@
-import { Chunk } from "./world_generation/createChunk";
-
+import { Chunk } from "./createChunk";
 import { zeros2, Vec2 } from "@repo/math";
 import {
   blockSize,
@@ -7,10 +6,9 @@ import {
   chunkSize,
   chunkRelSize,
   xWorldOffset,
-} from "./world_generation/perlinConstants";
-import { getMaterial, getMaterialId } from "./world_generation/materials";
-
-export type Integer = number;
+} from "../packages/world-generation/src/perlinConstants";
+import { getMaterialId } from "../packages/world-generation/src/materials";
+import { Integer } from "@repo/math/src/random";
 
 // Add safety measures, in case the selected "column" and "row" is undefined
 export const getWorldGrid = (
