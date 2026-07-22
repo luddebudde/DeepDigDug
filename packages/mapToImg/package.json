@@ -1,0 +1,15 @@
+{
+  "name": "mapToImg",
+  "version": "1.0.0",
+  "description": "ma",
+  "license": "ISC",
+  "author": "me",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": "src/index.ts",
+  "dependencies": {
+    "canvas": "3.2.3"
+  }
+}
